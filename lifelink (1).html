@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Life Link — Blood & Organ Donor Network</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Urbanist:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:        #C0122F;
+    --red-deep:   #7A0019;
+    --bg-tint:    #FFF6F6;
+    --white:      #FFFFFF;
+    --ink:        #14060A;
+    --ink-soft:   #3A1620;
+    --glass:      rgba(255,255,255,0.72);
+    --glass-brd:  rgba(255,255,255,0.9);
+    --vein-line:  rgba(192,18,47,0.35);
+    --panel:      rgba(255,255,255,0.62);
+  }
+
+  @property --border-angle{ syntax:'<angle>'; initial-value:0deg; inherits:false; }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  html,body{ background:#0a0a0a; }
+  body{ font-family:'Inter', sans-serif; color:var(--ink); overflow-x:hidden; }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important; }
+  }
+
+  a{ text-decoration:none; color:inherit; }
+  button{ font-family:inherit; border:none; cursor:pointer; background:none; }
+  :focus-visible{ outline:2px solid var(--red-deep); outline-offset:3px; border-radius:4px; }
+
+  .app{
+    position:relative; min-height:100vh; width:100%;
+    background:
+      radial-gradient(120% 90% at 78% 32%, rgba(192,18,47,0.10), transparent 60%),
+      radial-gradient(90% 70% at 10% 85%, rgba(122,0,25,0.08), transparent 55%),
+      linear-gradient(180deg, #FFFFFF 0%, var(--bg-tint) 55%, #FFEDEF 100%);
+    display:flex; flex-direction:column;
+  }
+  .app::before{
+    content:""; position:absolute; inset:0;
+    background-image:
+      radial-gradient(1px 1px at 20% 25%, var(--vein-line) 0, transparent 60%),
+      radial-gradient(1px 1px at 65% 15%, var(--vein-line) 0, transparent 60%),
+      radial-gradient(1px 1px at 85% 60%, var(--vein-line) 0, transparent 60%),
+      radial-gradient(1px 1px at 35% 75%, var(--vein-line) 0, transparent 60%);
+    pointer-events:none; z-index:0;
+  }
+
+  /* ============ HEADER (preserved) ============ */
+  header{
+    position:relative; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:24px 64px; max-width:1920px; margin:0 auto; width:100%;
+    animation:fadeDown 0.8s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  @keyframes fadeDown{ from{opacity:0; transform:translateY(-20px);} to{opacity:1; transform:translateY(0);} }
+
+  .header-left{ display:flex; align-items:center; gap:48px; }
+  .logo{ display:flex; align-items:center; gap:10px; }
+  .logo-mark{ width:30px; height:30px; }
+  .logo-word{ font-family:'Urbanist', sans-serif; font-weight:700; font-size:21px; letter-spacing:-0.3px; color:var(--ink); }
+  .logo-word span{ color:var(--red); }
+
+  nav{ display:flex; gap:36px; }
+  nav a{ position:relative; font-size:15px; font-weight:400; color:var(--ink); padding-bottom:3px; }
+  nav a::after{ content:""; position:absolute; left:0; bottom:0; width:100%; height:1px; background:var(--red); transform:scaleX(0); transform-origin:left; transition:transform 0.3s ease; }
+  nav a:hover::after{ transform:scaleX(1); }
+
+  .header-right{ display:flex; align-items:center; gap:28px; }
+  .login-link{ position:relative; font-size:15px; font-weight:500; color:var(--ink); padding-bottom:3px; }
+  .login-link::after{ content:""; position:absolute; left:0; bottom:0; width:100%; height:1px; background:var(--red); transform:scaleX(0); transform-origin:left; transition:transform 0.3s ease; }
+  .login-link:hover::after{ transform:scaleX(1); }
+
+  .btn-border-wrap{ position:relative; display:inline-block; border-radius:50px; }
+  .btn-border-wrap::before{
+    content:""; position:absolute; inset:-3px; border-radius:inherit; padding:3px;
+    background:conic-gradient(from var(--border-angle), var(--red), var(--red-deep), var(--red), var(--red-deep), var(--red));
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    animation: spin-border 3s linear infinite; pointer-events:none;
+  }
+  @keyframes spin-border{ to{ --border-angle:360deg; } }
+
+  .btn-join{
+    position:relative; overflow:hidden; display:inline-block;
+    background:var(--ink); color:var(--white);
+    padding:12px 26px; border-radius:50px; font-size:15px; font-weight:500; z-index:1;
+  }
+  .btn-join::after{ content:""; position:absolute; inset:0; background:var(--red); transform:translateX(-100%); transition:transform 0.4s cubic-bezier(0.22,1,0.36,1); z-index:-1; }
+  .btn-join:hover::after{ transform:translateX(0); }
+
+  /* ============ HERO SHELL (preserved layout) ============ */
+  .hero{
+    position:relative; z-index:2;
+    flex:1; display:flex; align-items:center; justify-content:space-between;
+    max-width:1920px; margin:0 auto; width:100%;
+    padding:20px 64px 0; gap:24px;
+  }
+  .hero-left{ flex:0 1 600px; padding-top:40px; animation:fadeUp 1s cubic-bezier(0.22,1,0.36,1) both; position:relative; z-index:6; }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(40px);} to{opacity:1; transform:translateY(0);} }
+
+  .eyebrow{ display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--red); margin-bottom:18px; }
+  .eyebrow .pulse-dot{ width:8px; height:8px; border-radius:50%; background:var(--red); animation:pulseDot 1.4s ease-in-out infinite; }
+  @keyframes pulseDot{ 0%,100%{ transform:scale(1); box-shadow:0 0 0 0 rgba(192,18,47,0.5); } 50%{ transform:scale(1.15); box-shadow:0 0 0 6px rgba(192,18,47,0); } }
+
+  .hero-heading{ font-family:'Urbanist', sans-serif; font-size:64px; font-weight:600; line-height:64px; letter-spacing:-1.5px; }
+  .hero-heading .cursor{ display:inline-block; width:3px; height:52px; background:var(--red); margin-left:2px; vertical-align:-8px; animation:blink 0.8s step-end infinite; }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .btn-row{ display:flex; gap:16px; flex-wrap:wrap; }
+  .btn-start{
+    margin-top:36px; display:inline-flex; align-items:center; gap:10px;
+    background:var(--red-deep); color:var(--white);
+    padding:14px 28px; border-radius:50px; font-size:16px; font-weight:500;
+    position:relative; overflow:hidden; z-index:1;
+    opacity:0; animation:fadeUp 0.8s cubic-bezier(0.22,1,0.36,1) 3.2s both;
+  }
+  .btn-start::after{ content:""; position:absolute; inset:0; background:var(--red); transform:translateX(100%); transition:transform 0.4s cubic-bezier(0.22,1,0.36,1); z-index:-1; }
+  .btn-start:hover::after{ transform:translateX(0); }
+  .btn-start svg{ position:relative; z-index:1; }
+  .btn-start .label{ position:relative; z-index:1; }
+  .btn-outline{ background:transparent; color:var(--red-deep); box-shadow:inset 0 0 0 1.5px rgba(192,18,47,0.5); }
+  .btn-outline .label{ color:var(--red-deep); }
+  .btn-outline::after{ background:#FFECEE; }
+  .outline-wrap .btn-outline{ animation-delay:3.5s; }
+  #registerBtn{ animation-delay:3.5s; }
+
+  .cursor-tag{ display:flex; align-items:center; gap:8px; margin-top:40px; opacity:0; animation:fadeUp 0.8s cubic-bezier(0.22,1,0.36,1) 3.9s both; }
+  .cursor-tag .badge{ background:var(--red); color:var(--white); font-size:16px; font-weight:500; padding:8px 16px; border-radius:20px; box-shadow:0 8px 20px rgba(192,18,47,0.35); }
+
+  /* ============ NEW HERO RIGHT — LIFE NETWORK ============ */
+  .hero-right{
+    flex:0 0 720px; width:720px; height:720px; position:relative;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; animation:scaleIn 1.2s cubic-bezier(0.22,1,0.36,1) 0.3s both;
+  }
+  @keyframes scaleIn{ from{opacity:0; transform:scale(0.85);} to{opacity:1; transform:scale(1);} }
+
+  .network-stage{ position:absolute; inset:0; }
+  .network-parallax{ position:absolute; inset:0; transition:transform 0.25s ease-out; transform-style:preserve-3d; }
+
+  .vessel-svg{ position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+  .vessel-ring-rot{ position:absolute; inset:0; transform-origin:50% 50%; }
+  .vring-1{ animation:spinCCW 220s linear infinite; }
+  .vring-2{ animation:spinCW 260s linear infinite; }
+  .vring-3{ animation:spinCCW 300s linear infinite; }
+  .vring-4{ animation:spinCW 340s linear infinite; }
+  @keyframes spinCW{ to{ transform:rotate(360deg); } }
+  @keyframes spinCCW{ to{ transform:rotate(-360deg); } }
+
+  .vessel-path{ fill:none; stroke:url(#veinGrad); stroke-width:1.6; opacity:0.55; }
+  .vessel-path.lit{ stroke:var(--red); opacity:1; filter:drop-shadow(0 0 6px rgba(192,18,47,0.75)); transition:opacity .3s ease, filter .3s ease; }
+
+  .connector-path{ fill:none; stroke:rgba(192,18,47,0.20); stroke-width:1.6; }
+  .connector-path.lit{ stroke:rgba(192,18,47,0.55); }
+
+  .blood-particle{ fill:var(--red); filter:drop-shadow(0 0 3px rgba(192,18,47,0.9)); }
+  .pulse-wave{ fill:none; stroke:rgba(255,255,255,0.7); stroke-width:2; opacity:0; }
+
+  .core-wrap{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:184px; height:184px; z-index:5;
+  }
+  .core{
+    position:relative; width:100%; height:100%; border-radius:50%;
+    background:
+      radial-gradient(circle at 32% 26%, rgba(255,255,255,0.9), rgba(255,255,255,0) 45%),
+      radial-gradient(circle at 60% 70%, rgba(255,180,190,0.5), transparent 60%),
+      linear-gradient(145deg, rgba(255,255,255,0.55), rgba(255,225,228,0.35));
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.6) inset,
+      0 0 60px 10px rgba(192,18,47,0.28),
+      0 20px 50px rgba(122,0,25,0.25);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    animation:heartGlow 1.2s ease-in-out infinite;
+  }
+  @keyframes heartGlow{
+    0%,100%{ box-shadow:0 0 0 1px rgba(255,255,255,0.6) inset, 0 0 60px 10px rgba(192,18,47,0.28), 0 20px 50px rgba(122,0,25,0.25); }
+    25%{ box-shadow:0 0 0 1px rgba(255,255,255,0.6) inset, 0 0 85px 18px rgba(192,18,47,0.42), 0 20px 55px rgba(122,0,25,0.32); }
+  }
+  .core .heart-icon{
+    width:50px; height:45px; margin-bottom:4px;
+    filter:drop-shadow(0 6px 10px rgba(168,15,39,0.55)) drop-shadow(0 1px 0 rgba(255,255,255,0.4));
+    animation:heartbeat 1.2s ease-in-out infinite; transform-origin:50% 60%;
+  }
+  @keyframes heartbeat{
+    0%,100%{ transform:scale(1); }
+    18%{ transform:scale(1.16); }
+    32%{ transform:scale(0.96); }
+    46%{ transform:scale(1.1); }
+    60%{ transform:scale(1); }
+  }
+  .core .count{ font-family:'Urbanist', sans-serif; font-size:50px; font-weight:500; color:var(--ink); line-height:1; }
+  .core .count-label{ font-family:'Urbanist', sans-serif; font-size:13px; font-weight:600; color:var(--red-deep); letter-spacing:0.5px; margin-top:2px; }
+
+  /* organ cards */
+  /* organ-orbit is a zero-size anchor at stage center; each card is placed with
+     JS-computed left/top pixel offsets from that anchor, so "transform" on
+     .organ-card is reserved purely for centering + hover, and is never
+     touched by an entrance animation (which would otherwise permanently
+     override it once the animation finishes and collapse every card to
+     the middle of the ring). */
+  .organ-orbit{ position:absolute; top:50%; left:50%; width:0; height:0; }
+  .organ-card{
+    position:absolute; top:0; left:0;
+    width:104px; transform:translate(-50%,-50%);
+    z-index:4; cursor:pointer; padding:0; background:none;
+    transition:transform 0.35s cubic-bezier(0.22,1,0.36,1);
+  }
+  .organ-card .card-enter{
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    padding:14px 10px 12px; border-radius:20px;
+    background:var(--glass);
+    border:1px solid rgba(255,255,255,0.8);
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    box-shadow:0 0 0 1px rgba(192,18,47,0.10), 0 12px 26px rgba(192,18,47,0.16);
+    opacity:0;
+    animation-name:cardIn; animation-duration:0.8s; animation-timing-function:cubic-bezier(0.22,1,0.36,1); animation-fill-mode:both;
+    transition:box-shadow 0.35s ease;
+  }
+  .organ-card .float-inner{ animation:floaty 5.5s ease-in-out infinite; display:flex; flex-direction:column; align-items:center; gap:2px; }
+  @keyframes floaty{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); } }
+
+  @keyframes cardIn{ from{ opacity:0; transform:scale(0.3) rotate(-140deg); filter:blur(6px); } to{ opacity:1; transform:scale(1) rotate(0deg); filter:blur(0); } }
+
+  .organ-card .icon-wrap{ font-size:26px; line-height:1; }
+  .organ-card .organ-name{ font-family:'Urbanist', sans-serif; font-size:12.5px; font-weight:700; color:var(--ink); }
+  .organ-card .status-dot-row{ display:flex; align-items:center; gap:4px; }
+  .organ-card .status-dot{ width:6px; height:6px; border-radius:50%; background:#22B673; box-shadow:0 0 0 0 rgba(34,182,115,0.5); animation:statusPulse 1.8s ease-in-out infinite; }
+  .organ-card.low .status-dot{ background:#E0A500; animation:statusPulseAmber 1.8s ease-in-out infinite; }
+  @keyframes statusPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(34,182,115,0.45); } 50%{ box-shadow:0 0 0 5px rgba(34,182,115,0); } }
+  @keyframes statusPulseAmber{ 0%,100%{ box-shadow:0 0 0 0 rgba(224,165,0,0.45); } 50%{ box-shadow:0 0 0 5px rgba(224,165,0,0); } }
+  .organ-card .status-text{ font-size:9.5px; font-weight:600; color:#178a56; letter-spacing:0.3px; text-transform:uppercase; }
+  .organ-card.low .status-text{ color:#a67200; }
+
+  .organ-card:hover, .organ-card:focus-visible{
+    transform:translate(-50%,-50%) scale(1.14);
+    z-index:8;
+  }
+  .organ-card:hover .card-enter, .organ-card:focus-visible .card-enter{
+    box-shadow:0 0 0 1px rgba(192,18,47,0.28), 0 0 34px 6px rgba(192,18,47,0.32), 0 18px 34px rgba(192,18,47,0.22);
+  }
+
+  .organ-card.center-heart{
+    position:absolute; top:50%; left:50%; width:auto; padding:0; background:none; border:none; box-shadow:none; cursor:default;
+  }
+
+  /* organ detail panel */
+  .organ-panel-overlay{
+    position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center;
+    background:rgba(20,6,10,0.45); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+    opacity:0; pointer-events:none; transition:opacity 0.35s ease;
+  }
+  .organ-panel-overlay.open{ opacity:1; pointer-events:auto; }
+  .organ-panel{
+    width:min(420px, 90vw); border-radius:28px; padding:32px 30px 28px;
+    background:linear-gradient(160deg, rgba(255,255,255,0.92), rgba(255,240,242,0.92));
+    border:1px solid rgba(255,255,255,0.9);
+    box-shadow:0 30px 70px rgba(122,0,25,0.35);
+    transform:translateY(24px) scale(0.94); opacity:0; transition:transform 0.4s cubic-bezier(0.22,1,0.36,1), opacity 0.4s ease;
+  }
+  .organ-panel-overlay.open .organ-panel{ transform:translateY(0) scale(1); opacity:1; }
+  .organ-panel .panel-top{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:6px; }
+  .organ-panel .panel-icon{ font-size:38px; }
+  .organ-panel .panel-close{ width:32px; height:32px; border-radius:50%; background:rgba(122,0,25,0.08); display:flex; align-items:center; justify-content:center; font-size:16px; color:var(--red-deep); transition:background .2s ease; }
+  .organ-panel .panel-close:hover{ background:rgba(122,0,25,0.16); }
+  .organ-panel h3{ font-family:'Urbanist', sans-serif; font-size:26px; font-weight:700; margin-top:8px; }
+  .organ-panel .panel-stats{ display:flex; gap:22px; margin:18px 0 20px; }
+  .organ-panel .panel-stat b{ display:block; font-family:'Urbanist', sans-serif; font-size:22px; color:var(--red-deep); }
+  .organ-panel .panel-stat span{ font-size:12px; color:var(--ink-soft); font-weight:500; }
+  .organ-panel .panel-actions{ display:flex; flex-direction:column; gap:10px; }
+  .panel-btn-primary{ background:var(--red-deep); color:#fff; padding:13px; border-radius:14px; font-weight:600; font-size:14.5px; text-align:center; transition:background .25s ease; }
+  .panel-btn-primary:hover{ background:var(--red); }
+  .panel-btn-secondary{ background:rgba(122,0,25,0.08); color:var(--red-deep); padding:13px; border-radius:14px; font-weight:600; font-size:14.5px; text-align:center; transition:background .25s ease; }
+  .panel-btn-secondary:hover{ background:rgba(122,0,25,0.14); }
+
+  /* ============ IMPACT STATS STRIP (in-hero, preserved) ============ */
+  .stats-strip{
+    position:relative; z-index:2; display:flex; align-items:center; justify-content:center;
+    gap:40px; flex-wrap:wrap; max-width:1400px; margin:0 auto; width:100%;
+    padding:28px 64px 48px; opacity:0; animation:fadeUp 1s cubic-bezier(0.22,1,0.36,1) 0.6s both;
+  }
+  .stat-item{ display:flex; flex-direction:column; align-items:center; text-align:center; min-width:120px; }
+  .stat-number{ font-family:'Urbanist', sans-serif; font-weight:700; font-size:36px; line-height:1; color:var(--red-deep); }
+  .stat-label{ margin-top:6px; font-size:13px; font-weight:500; color:var(--ink-soft); letter-spacing:0.3px; }
+  .stat-divider{ width:1px; height:36px; background:rgba(192,18,47,0.2); }
+  @media (max-width:1024px){ .stats-strip{ padding:24px 24px 40px; gap:28px; } .stat-divider{ display:none; } }
+  @media (max-width:768px){ .stat-number{ font-size:28px; } .stat-item{ min-width:90px; } }
+
+  /* ============================================================
+     SCROLL SECTIONS
+  ============================================================ */
+  section.page-section{ position:relative; z-index:2; padding:120px 64px; max-width:1400px; margin:0 auto; width:100%; }
+  .section-eyebrow{ display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--red); margin-bottom:14px; }
+  .section-eyebrow::before{ content:""; width:22px; height:1px; background:var(--red); }
+  .section-title{ font-family:'Urbanist', sans-serif; font-size:42px; font-weight:600; letter-spacing:-1px; line-height:1.1; max-width:640px; }
+  .section-sub{ margin-top:16px; font-size:16px; color:var(--ink-soft); max-width:560px; line-height:1.6; }
+  .section-head{ margin-bottom:56px; }
+  .section-head.center{ text-align:center; margin-left:auto; margin-right:auto; }
+  .section-head.center .section-title, .section-head.center .section-sub{ margin-left:auto; margin-right:auto; }
+
+  .reveal{ opacity:0; transform:translateY(36px); filter:blur(4px); transition:opacity 0.8s cubic-bezier(0.22,1,0.36,1), transform 0.8s cubic-bezier(0.22,1,0.36,1), filter 0.8s cubic-bezier(0.22,1,0.36,1); }
+  .reveal.in-view{ opacity:1; transform:translateY(0); filter:blur(0); }
+  .stagger > *{ transition-delay:calc(var(--i, 0) * 0.09s); }
+
+  /* ---- SECTION 1: live stats (secondary, deeper stats) ---- */
+  .stats-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:24px; }
+  .stat-card{
+    padding:32px 26px; border-radius:22px; background:var(--glass); border:1px solid rgba(255,255,255,0.8);
+    backdrop-filter:blur(6px); box-shadow:0 12px 30px rgba(192,18,47,0.10);
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .stat-card .icon{ font-size:26px; }
+  .stat-card .big-num{ font-family:'Urbanist', sans-serif; font-size:38px; font-weight:700; color:var(--red-deep); }
+  .stat-card .cap{ font-size:13.5px; font-weight:500; color:var(--ink-soft); }
+
+  /* ---- SECTION 2: how it works timeline ---- */
+  .timeline-wrap{ position:relative; padding-top:20px; }
+  .timeline-track{ position:relative; display:flex; justify-content:space-between; gap:12px; }
+  .timeline-line-svg{ position:absolute; top:27px; left:0; width:100%; height:6px; }
+  .timeline-step{ position:relative; flex:1; display:flex; flex-direction:column; align-items:center; text-align:center; gap:14px; }
+  .timeline-node{
+    width:56px; height:56px; border-radius:50%; background:var(--white);
+    border:2px solid rgba(192,18,47,0.25); display:flex; align-items:center; justify-content:center;
+    font-size:22px; position:relative; z-index:2; box-shadow:0 8px 20px rgba(192,18,47,0.14);
+    transition:border-color .4s ease, box-shadow .4s ease, transform .4s ease;
+  }
+  .timeline-step.in-view .timeline-node{ border-color:var(--red); box-shadow:0 8px 26px rgba(192,18,47,0.32); transform:scale(1.06); }
+  .timeline-step h4{ font-family:'Urbanist', sans-serif; font-size:16.5px; font-weight:700; }
+  .timeline-step p{ font-size:13px; color:var(--ink-soft); max-width:150px; line-height:1.5; }
+  .timeline-num{ position:absolute; top:-22px; font-size:11px; font-weight:700; color:rgba(192,18,47,0.5); letter-spacing:1px; }
+
+  /* ---- SECTION 3: find blood ---- */
+  .blood-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:18px; }
+  .blood-card{
+    padding:26px 20px; border-radius:20px; background:var(--white); border:1px solid rgba(192,18,47,0.10);
+    box-shadow:0 10px 24px rgba(192,18,47,0.08); text-align:center; cursor:pointer;
+    transition:transform .3s cubic-bezier(0.22,1,0.36,1), box-shadow .3s ease, border-color .3s ease;
+  }
+  .blood-card:hover{ transform:translateY(-6px); box-shadow:0 18px 36px rgba(192,18,47,0.20); border-color:rgba(192,18,47,0.3); }
+  .blood-card .bg-type{ font-family:'Urbanist', sans-serif; font-size:30px; font-weight:700; color:var(--red-deep); }
+  .blood-card .bg-avail{ margin-top:10px; font-size:12px; font-weight:600; letter-spacing:0.3px; }
+  .blood-card .bg-bar{ margin-top:10px; height:5px; border-radius:3px; background:rgba(192,18,47,0.10); overflow:hidden; }
+  .blood-card .bg-bar span{ display:block; height:100%; background:linear-gradient(90deg, var(--red-deep), var(--red)); border-radius:3px; }
+  .avail-high{ color:#178a56; }
+  .avail-med{ color:#a67200; }
+  .avail-low{ color:var(--red-deep); }
+  .emergency-strip{
+    margin-top:36px; display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;
+    padding:22px 28px; border-radius:20px; background:linear-gradient(120deg, rgba(192,18,47,0.06), rgba(192,18,47,0.02));
+    border:1px dashed rgba(192,18,47,0.3);
+  }
+  .emergency-strip .et{ font-family:'Urbanist', sans-serif; font-size:17px; font-weight:700; }
+  .emergency-strip .es{ font-size:13.5px; color:var(--ink-soft); margin-top:3px; }
+  .btn-solid-sm{ background:var(--red-deep); color:#fff; padding:11px 22px; border-radius:40px; font-weight:600; font-size:14px; white-space:nowrap; transition:background .25s ease; }
+  .btn-solid-sm:hover{ background:var(--red); }
+
+  /* ---- SECTION 4: organ donation ---- */
+  .organ-donation-grid{ display:grid; grid-template-columns:1.1fr 1fr; gap:40px; align-items:start; }
+  .od-cards{ display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; }
+  .od-card{
+    padding:22px 16px; border-radius:18px; background:var(--white); border:1px solid rgba(192,18,47,0.10);
+    box-shadow:0 8px 20px rgba(192,18,47,0.07); text-align:center; display:flex; flex-direction:column; align-items:center; gap:6px;
+    transition:transform .3s ease, box-shadow .3s ease;
+  }
+  .od-card:hover{ transform:translateY(-4px); box-shadow:0 14px 28px rgba(192,18,47,0.15); }
+  .od-card .oi{ font-size:24px; }
+  .od-card .on{ font-family:'Urbanist', sans-serif; font-weight:700; font-size:13.5px; }
+  .od-panel{
+    padding:30px; border-radius:24px; background:linear-gradient(160deg, rgba(255,255,255,0.85), rgba(255,240,242,0.85));
+    border:1px solid rgba(255,255,255,0.9); box-shadow:0 20px 46px rgba(192,18,47,0.12);
+  }
+  .od-panel h4{ font-family:'Urbanist', sans-serif; font-size:19px; margin-bottom:16px; }
+  .match-row{ display:flex; align-items:center; gap:14px; margin-bottom:16px; }
+  .match-ring{ position:relative; width:56px; height:56px; flex:none; }
+  .match-ring svg{ width:100%; height:100%; transform:rotate(-90deg); }
+  .match-ring circle{ fill:none; stroke-width:6; }
+  .match-ring .bgc{ stroke:rgba(192,18,47,0.12); }
+  .match-ring .fgc{ stroke:var(--red-deep); stroke-linecap:round; transition:stroke-dashoffset 1.2s cubic-bezier(0.22,1,0.36,1); }
+  .match-ring .pct{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--red-deep); }
+  .match-text b{ display:block; font-size:14px; }
+  .match-text span{ font-size:12px; color:var(--ink-soft); }
+  .ai-badge{ display:inline-flex; align-items:center; gap:6px; margin-top:6px; padding:8px 14px; border-radius:30px; background:rgba(34,182,115,0.10); color:#178a56; font-size:12.5px; font-weight:600; }
+  .ai-badge .dot{ width:6px; height:6px; border-radius:50%; background:#22B673; animation:statusPulse 1.8s ease-in-out infinite; }
+
+  /* ---- SECTION 5: emergency SOS ---- */
+  .sos-section{
+    border-radius:36px; margin:0 64px; max-width:1272px; padding:80px 40px;
+    background:radial-gradient(circle at 50% 30%, rgba(192,18,47,0.14), rgba(192,18,47,0.03) 70%);
+    border:1px solid rgba(192,18,47,0.14);
+    display:flex; flex-direction:column; align-items:center; text-align:center; gap:20px;
+    position:relative; overflow:hidden;
+  }
+  .sos-section::before{
+    content:""; position:absolute; inset:0; z-index:0;
+    background-image:radial-gradient(1px 1px at 15% 30%, rgba(192,18,47,0.4) 0, transparent 60%),
+      radial-gradient(1px 1px at 80% 20%, rgba(192,18,47,0.4) 0, transparent 60%),
+      radial-gradient(1px 1px at 60% 80%, rgba(192,18,47,0.4) 0, transparent 60%);
+  }
+  .sos-inner{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .sos-btn{
+    position:relative; width:180px; height:180px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #FF3B54, var(--red-deep));
+    color:#fff; font-family:'Urbanist', sans-serif; font-weight:700; font-size:20px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 20px 50px rgba(192,18,47,0.4);
+    animation:sosPulse 2s ease-in-out infinite;
+  }
+  .sos-btn::before, .sos-btn::after{
+    content:""; position:absolute; inset:0; border-radius:50%; border:2px solid rgba(192,18,47,0.5);
+    animation:sosRing 2s ease-out infinite;
+  }
+  .sos-btn::after{ animation-delay:1s; }
+  @keyframes sosPulse{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.04); } }
+  @keyframes sosRing{ 0%{ transform:scale(1); opacity:0.8; } 100%{ transform:scale(1.6); opacity:0; } }
+  .sos-title{ font-family:'Urbanist', sans-serif; font-size:32px; font-weight:700; max-width:520px; }
+  .sos-sub{ font-size:15px; color:var(--ink-soft); max-width:460px; line-height:1.6; }
+
+  /* ---- SECTION 6: hospitals ---- */
+  .hosp-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:22px; }
+  .hosp-card{ border-radius:22px; overflow:hidden; background:var(--white); border:1px solid rgba(192,18,47,0.10); box-shadow:0 12px 28px rgba(192,18,47,0.08); transition:transform .3s ease, box-shadow .3s ease; }
+  .hosp-card:hover{ transform:translateY(-6px); box-shadow:0 20px 40px rgba(192,18,47,0.18); }
+  .hosp-map{ height:120px; position:relative; background:linear-gradient(135deg, #FFE3E7, #FFF3F4); overflow:hidden; }
+  .hosp-map svg{ position:absolute; inset:0; width:100%; height:100%; }
+  .hosp-body{ padding:20px 20px 22px; }
+  .hosp-name{ font-family:'Urbanist', sans-serif; font-weight:700; font-size:16.5px; display:flex; align-items:center; gap:6px; }
+  .verified-tick{ color:#178a56; font-size:13px; }
+  .hosp-meta{ margin-top:6px; font-size:12.5px; color:var(--ink-soft); }
+  .hosp-foot{ margin-top:14px; display:flex; align-items:center; justify-content:space-between; }
+  .hosp-dist{ font-size:12px; font-weight:600; color:var(--red-deep); }
+  .hosp-avail{ font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:20px; background:rgba(34,182,115,0.1); color:#178a56; }
+
+  /* ---- SECTION 7: testimonials ---- */
+  .testi-viewport{ overflow:hidden; }
+  .testi-track{ display:flex; gap:22px; width:max-content; animation:scrollTesti 34s linear infinite; }
+  .testi-viewport:hover .testi-track{ animation-play-state:paused; }
+  @keyframes scrollTesti{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+  .testi-card{
+    width:340px; flex:none; padding:26px; border-radius:22px; background:var(--glass);
+    border:1px solid rgba(255,255,255,0.85); box-shadow:0 12px 28px rgba(192,18,47,0.10);
+  }
+  .testi-quote{ font-size:14.5px; line-height:1.65; color:var(--ink-soft); }
+  .testi-person{ margin-top:18px; display:flex; align-items:center; gap:12px; }
+  .testi-avatar{ width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg, var(--red), var(--red-deep)); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:14px; }
+  .testi-name{ font-size:13.5px; font-weight:700; }
+  .testi-role{ font-size:11.5px; color:var(--ink-soft); }
+
+  /* ---- SECTION 8: FAQ ---- */
+  .faq-list{ display:flex; flex-direction:column; gap:14px; max-width:780px; }
+  .faq-item{ border-radius:18px; background:var(--white); border:1px solid rgba(192,18,47,0.10); overflow:hidden; }
+  .faq-q{ width:100%; display:flex; align-items:center; justify-content:space-between; padding:20px 24px; text-align:left; font-family:'Urbanist', sans-serif; font-weight:600; font-size:16px; }
+  .faq-q .plus{ flex:none; width:22px; height:22px; position:relative; }
+  .faq-q .plus::before, .faq-q .plus::after{ content:""; position:absolute; background:var(--red-deep); border-radius:2px; transition:transform 0.35s cubic-bezier(0.22,1,0.36,1); }
+  .faq-q .plus::before{ width:14px; height:2px; top:10px; left:4px; }
+  .faq-q .plus::after{ width:2px; height:14px; top:4px; left:10px; }
+  .faq-item.open .plus::after{ transform:rotate(90deg) translate(0,0); opacity:0; }
+  .faq-a{ max-height:0; overflow:hidden; transition:max-height 0.4s cubic-bezier(0.22,1,0.36,1); }
+  .faq-a p{ padding:0 24px 20px; font-size:14.5px; color:var(--ink-soft); line-height:1.65; }
+  .faq-item.open .faq-a{ max-height:220px; }
+
+  /* ---- FOOTER ---- */
+  footer{ position:relative; z-index:2; background:var(--ink); color:#F5E9EB; padding:70px 64px 30px; }
+  .footer-grid{ max-width:1400px; margin:0 auto; display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:40px; }
+  .footer-brand .logo-word{ color:#fff; }
+  .footer-brand .logo-word span{ color:var(--red); }
+  .footer-tag{ margin-top:14px; font-size:13.5px; color:rgba(245,233,235,0.6); max-width:280px; line-height:1.6; }
+  .footer-social{ display:flex; gap:12px; margin-top:20px; }
+  .footer-social a{ width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; transition:background .25s ease; }
+  .footer-social a:hover{ background:var(--red); }
+  .footer-col h5{ font-family:'Urbanist', sans-serif; font-size:14px; letter-spacing:0.5px; text-transform:uppercase; color:rgba(245,233,235,0.5); margin-bottom:16px; }
+  .footer-col a{ display:block; font-size:14.5px; color:rgba(245,233,235,0.85); margin-bottom:12px; transition:color .2s ease; }
+  .footer-col a:hover{ color:#fff; }
+  .footer-emergency{ font-size:22px; font-family:'Urbanist', sans-serif; font-weight:700; color:#fff; }
+  .footer-bottom{ max-width:1400px; margin:50px auto 0; padding-top:24px; border-top:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:12.5px; color:rgba(245,233,235,0.45); }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:1280px){
+    .hero-right{ transform:scale(0.85); flex-basis:612px; }
+    .stats-grid, .hosp-grid{ grid-template-columns:repeat(2,1fr); }
+    .organ-donation-grid{ grid-template-columns:1fr; }
+  }
+  @media (max-width:1024px){
+    .hero{ flex-direction:column; text-align:center; padding-top:0; gap:0; }
+    .hero-left{ flex-basis:auto; }
+    .hero-heading{ font-size:48px; line-height:52px; }
+    .cursor-tag{ justify-content:center; }
+    .hero-right{ transform:scale(0.7); margin:-60px auto -40px; }
+    nav{ gap:20px; }
+    .blood-grid{ grid-template-columns:repeat(2,1fr); }
+    section.page-section{ padding:90px 32px; }
+    .sos-section{ margin:0 24px; }
+  }
+  @media (max-width:768px){
+    header{ padding:20px 24px; }
+    nav{ display:none; }
+    .hero{ padding:0 24px; }
+    .hero-heading{ font-size:36px; line-height:40px; }
+    .hero-right{ transform:scale(0.5); margin:-140px auto -100px; }
+    .stats-grid, .od-cards, .hosp-grid{ grid-template-columns:repeat(2,1fr); }
+    .footer-grid{ grid-template-columns:1fr 1fr; }
+    .section-title{ font-size:32px; }
+    .timeline-track{ flex-direction:column; gap:36px; }
+    .timeline-line-svg{ display:none; }
+  }
+  @media (max-width:480px){
+    .hero-heading{ font-size:28px; line-height:32px; }
+    .hero-right{ transform:scale(0.4); margin:-190px auto -140px; }
+    .btn-join, .btn-start{ padding:10px 18px; font-size:13px; }
+    .blood-grid{ grid-template-columns:repeat(2,1fr); }
+    .footer-grid{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="veinGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"  stop-color="#C0122F" stop-opacity="0"/>
+        <stop offset="43%" stop-color="#C0122F" stop-opacity="1"/>
+        <stop offset="100%" stop-color="#C0122F" stop-opacity="0"/>
+      </linearGradient>
+      <radialGradient id="heartGrad3d" cx="38%" cy="28%" r="75%">
+        <stop offset="0%"  stop-color="#FF6B7A"/>
+        <stop offset="35%" stop-color="#E11D3A"/>
+        <stop offset="70%" stop-color="#A80F27"/>
+        <stop offset="100%" stop-color="#6E0918"/>
+      </radialGradient>
+      <radialGradient id="heartShine" cx="32%" cy="22%" r="30%">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.85)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+      </radialGradient>
+    </defs>
+  </svg>
+
+  <!-- ============ HEADER (preserved) ============ -->
+  <header>
+    <div class="header-left">
+      <div class="logo">
+        <svg class="logo-mark" viewBox="0 0 32 32" fill="none">
+          <path d="M16 27s-10.5-6.8-13.6-13C0.4 9.6 2.6 4.8 7 3.6c3-0.8 6 0.4 9 3.4 3-3 6-4.2 9-3.4 4.4 1.2 6.6 6 4.6 10.4C26.5 20.2 16 27 16 27Z" fill="#C0122F"/>
+          <path d="M4 15h4l2-5 3 10 2.5-6 1.5 3h9" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="logo-word">Life<span>Link</span></div>
+      </div>
+      <nav>
+        <a href="#find-blood">Find Blood</a>
+        <a href="#find-organs">Find Organs</a>
+        <a href="#hospitals">For Hospitals</a>
+        <a href="#how-it-works">How It Works</a>
+      </nav>
+    </div>
+    <div class="header-right">
+      <a class="login-link" href="#">Log In</a>
+      <div class="btn-border-wrap">
+        <button class="btn-join">Register Now</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="hero-left">
+      <div class="eyebrow"><span class="pulse-dot"></span>Live blood &amp; organ network</div>
+      <h1 class="hero-heading" id="typewriter"></h1>
+
+      <div class="btn-row">
+        <div class="btn-border-wrap" style="margin-top:36px;">
+          <button class="btn-start" id="startBtn" style="margin-top:0;">
+            <span class="label">Search Availability</span>
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M6 3l6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="btn-border-wrap outline-wrap" style="margin-top:36px;">
+          <button class="btn-start btn-outline" id="registerBtn" style="margin-top:0;">
+            <span class="label">Register as Donor</span>
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3v12M3 9h12" stroke="#C0122F" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ NEW HERO RIGHT: HUMAN LIFE NETWORK ============ -->
+    <div class="hero-right" id="lifeNetwork">
+      <div class="network-parallax" id="networkParallax">
+
+        <!-- rotating vessel rings with organic wobble paths -->
+        <div class="vessel-ring-rot vring-4" style="width:797px;height:797px;top:50%;left:50%;margin:-398.5px 0 0 -398.5px;">
+          <svg class="vessel-svg" viewBox="0 0 797 797">
+            <path class="vessel-path" data-ring="4" d="M398,5 C560,10 780,150 792,398 C784,640 590,788 398,792 C200,786 12,630 6,398 C10,190 200,12 398,5 Z"/>
+          </svg>
+        </div>
+        <div class="vessel-ring-rot vring-3" style="width:649px;height:649px;top:50%;left:50%;margin:-324.5px 0 0 -324.5px;">
+          <svg class="vessel-svg" viewBox="0 0 649 649">
+            <path class="vessel-path" data-ring="3" d="M324,4 C460,10 640,120 644,324 C640,520 470,642 324,646 C160,642 8,510 5,324 C8,155 160,10 324,4 Z"/>
+          </svg>
+        </div>
+        <div class="vessel-ring-rot vring-2" style="width:501px;height:501px;top:50%;left:50%;margin:-250.5px 0 0 -250.5px;">
+          <svg class="vessel-svg" viewBox="0 0 501 501">
+            <path class="vessel-path" data-ring="2" d="M250,4 C360,8 494,100 496,250 C494,392 366,494 250,496 C126,494 6,388 4,250 C6,122 126,10 250,4 Z"/>
+          </svg>
+        </div>
+        <div class="vessel-ring-rot vring-1" style="width:353px;height:353px;top:50%;left:50%;margin:-176.5px 0 0 -176.5px;">
+          <svg class="vessel-svg" viewBox="0 0 353 353">
+            <path class="vessel-path" data-ring="1" d="M176,4 C254,8 346,72 348,176 C346,272 258,346 176,348 C90,346 6,270 5,176 C6,88 90,10 176,4 Z"/>
+          </svg>
+        </div>
+
+        <!-- static connectors + particle canvas (drawn once, animated via JS) -->
+        <svg class="vessel-svg" id="connectorsSvg" viewBox="0 0 720 720" style="top:50%;left:50%;transform:translate(-50%,-50%);width:720px;height:720px;">
+        </svg>
+
+        <!-- organ orbit container -->
+        <div class="organ-orbit" id="organOrbit"></div>
+
+        <!-- center heart -->
+        <div class="core-wrap" id="coreWrap">
+          <div class="core">
+            <svg class="heart-icon" viewBox="0 0 36 32" fill="none">
+              <path d="M18 30.5S3.5 21.6 1 14.4C-0.8 9.2 2 3.6 7.6 2.2 11.4 1.2 15 2.6 18 6.4 21 2.6 24.6 1.2 28.4 2.2 34 3.6 36.8 9.2 35 14.4 32.5 21.6 18 30.5 18 30.5Z" fill="url(#heartGrad3d)"/>
+              <path d="M18 30.5S3.5 21.6 1 14.4C-0.8 9.2 2 3.6 7.6 2.2 11.4 1.2 15 2.6 18 6.4 21 2.6 24.6 1.2 28.4 2.2 34 3.6 36.8 9.2 35 14.4 32.5 21.6 18 30.5 18 30.5Z" fill="url(#heartShine)" opacity="0.55"/>
+              <path d="M18 6.4c-1.8 2-2.6 4-2.6 6.3 0 3.3 2.4 5.6 5.4 6.6" stroke="rgba(255,255,255,0.35)" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+            </svg>
+            <div class="count" id="countUp">0</div>
+            <div class="count-label">Active Donors</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- organ detail popup (shared) -->
+  <div class="organ-panel-overlay" id="organPanelOverlay">
+    <div class="organ-panel" role="dialog" aria-modal="true" aria-labelledby="panelOrganName">
+      <div class="panel-top">
+        <div class="panel-icon" id="panelIcon">🫀</div>
+        <button class="panel-close" id="panelClose" aria-label="Close">✕</button>
+      </div>
+      <h3 id="panelOrganName">Organ</h3>
+      <div class="panel-stats">
+        <div class="panel-stat"><b id="panelDonors">—</b><span>Available Donors</span></div>
+        <div class="panel-stat"><b id="panelHospitals">—</b><span>Nearby Hospitals</span></div>
+      </div>
+      <div class="panel-actions">
+        <button class="panel-btn-primary">Request Organ</button>
+        <button class="panel-btn-secondary">Become a Donor</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ IMPACT STATS STRIP (preserved, in hero) ============ -->
+  <section class="stats-strip">
+    <div class="stat-item">
+      <div class="stat-number" data-target="8400" data-suffix="+" id="stat-lives">0</div>
+      <div class="stat-label">Lives Saved</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <div class="stat-number" data-target="320" data-suffix="+" id="stat-hospitals">0</div>
+      <div class="stat-label">Hospitals Connected</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <div class="stat-number" data-target="45" data-suffix="+" id="stat-cities">0</div>
+      <div class="stat-label">Cities Covered</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <div class="stat-number" data-target="12" data-suffix=" min" id="stat-time">0</div>
+      <div class="stat-label">Avg. Match Time</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <div class="stat-number" data-target="24" data-suffix="/7" id="stat-support">0</div>
+      <div class="stat-label">Emergency Support</div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 1: LIVE STATISTICS ============ -->
+  <section class="page-section" id="live-stats">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Right now</div>
+      <h2 class="section-title">A network that never sleeps</h2>
+      <p class="section-sub">Every number below updates as donors register, hospitals confirm matches, and requests are fulfilled across the country.</p>
+    </div>
+    <div class="stats-grid stagger">
+      <div class="stat-card reveal" style="--i:0"><div class="icon">🩸</div><div class="big-num" data-count="41800">0</div><div class="cap">Active Donors</div></div>
+      <div class="stat-card reveal" style="--i:1"><div class="icon">🏥</div><div class="big-num" data-count="320">0</div><div class="cap">Partner Hospitals</div></div>
+      <div class="stat-card reveal" style="--i:2"><div class="icon">💚</div><div class="big-num" data-count="8400">0</div><div class="cap">Lives Saved</div></div>
+      <div class="stat-card reveal" style="--i:3"><div class="icon">⏱️</div><div class="big-num" data-count="613">0</div><div class="cap">Open Blood Requests</div></div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 2: HOW IT WORKS ============ -->
+  <section class="page-section" id="how-it-works">
+    <div class="section-head center reveal">
+      <div class="section-eyebrow">The process</div>
+      <h2 class="section-title">From search to saved life, in five steps</h2>
+      <p class="section-sub">Each step below happens in order — the sequence itself is what makes a match possible within minutes, not days.</p>
+    </div>
+    <div class="timeline-wrap">
+      <svg class="timeline-line-svg" viewBox="0 0 1000 6" preserveAspectRatio="none">
+        <line x1="0" y1="3" x2="1000" y2="3" stroke="rgba(192,18,47,0.18)" stroke-width="2"/>
+        <line id="timelineProgress" x1="0" y1="3" x2="0" y2="3" stroke="var(--red)" stroke-width="2"/>
+      </svg>
+      <div class="timeline-track">
+        <div class="timeline-step reveal" style="--i:0"><span class="timeline-num">STEP 1</span><div class="timeline-node">🔍</div><h4>Search</h4><p>Enter blood type or organ need — LifeLink scans verified donors nearby.</p></div>
+        <div class="timeline-step reveal" style="--i:1"><span class="timeline-num">STEP 2</span><div class="timeline-node">🧬</div><h4>Match</h4><p>Compatibility, distance, and urgency are weighed to rank the best matches.</p></div>
+        <div class="timeline-step reveal" style="--i:2"><span class="timeline-num">STEP 3</span><div class="timeline-node">🔔</div><h4>Notify</h4><p>Matched donors and the requesting hospital are alerted instantly.</p></div>
+        <div class="timeline-step reveal" style="--i:3"><span class="timeline-num">STEP 4</span><div class="timeline-node">💉</div><h4>Donate</h4><p>Donation is scheduled at the nearest verified hospital or blood bank.</p></div>
+        <div class="timeline-step reveal" style="--i:4"><span class="timeline-num">STEP 5</span><div class="timeline-node">❤️</div><h4>Save Life</h4><p>The recipient is treated — and the outcome is logged back to the network.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 3: FIND BLOOD ============ -->
+  <section class="page-section" id="find-blood">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Find blood</div>
+      <h2 class="section-title">Check live availability by blood group</h2>
+      <p class="section-sub">Tap a blood group to see donor density in your area and start a request.</p>
+    </div>
+    <div class="blood-grid stagger">
+      <div class="blood-card reveal" style="--i:0"><div class="bg-type">O+</div><div class="bg-avail avail-high">High availability</div><div class="bg-bar"><span style="width:82%"></span></div></div>
+      <div class="blood-card reveal" style="--i:1"><div class="bg-type">O−</div><div class="bg-avail avail-low">Critical need</div><div class="bg-bar"><span style="width:18%"></span></div></div>
+      <div class="blood-card reveal" style="--i:2"><div class="bg-type">A+</div><div class="bg-avail avail-high">High availability</div><div class="bg-bar"><span style="width:74%"></span></div></div>
+      <div class="blood-card reveal" style="--i:3"><div class="bg-type">A−</div><div class="bg-avail avail-med">Moderate</div><div class="bg-bar"><span style="width:46%"></span></div></div>
+      <div class="blood-card reveal" style="--i:4"><div class="bg-type">B+</div><div class="bg-avail avail-high">High availability</div><div class="bg-bar"><span style="width:68%"></span></div></div>
+      <div class="blood-card reveal" style="--i:5"><div class="bg-type">B−</div><div class="bg-avail avail-med">Moderate</div><div class="bg-bar"><span style="width:39%"></span></div></div>
+      <div class="blood-card reveal" style="--i:6"><div class="bg-type">AB+</div><div class="bg-avail avail-med">Moderate</div><div class="bg-bar"><span style="width:52%"></span></div></div>
+      <div class="blood-card reveal" style="--i:7"><div class="bg-type">AB−</div><div class="bg-avail avail-low">Critical need</div><div class="bg-bar"><span style="width:12%"></span></div></div>
+    </div>
+    <div class="emergency-strip reveal">
+      <div>
+        <div class="et">Need blood urgently?</div>
+        <div class="es">Submit an emergency request and nearby verified donors are notified within seconds.</div>
+      </div>
+      <button class="btn-solid-sm">Emergency Request</button>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 4: ORGAN DONATION ============ -->
+  <section class="page-section" id="find-organs">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Organ donation</div>
+      <h2 class="section-title">Matching built on verified medical data</h2>
+      <p class="section-sub">Every organ listing is checked against hospital records before it ever reaches the waiting list.</p>
+    </div>
+    <div class="organ-donation-grid">
+      <div class="od-cards stagger">
+        <div class="od-card reveal" style="--i:0"><div class="oi">🫁</div><div class="on">Lungs</div></div>
+        <div class="od-card reveal" style="--i:1"><div class="oi">🧠</div><div class="on">Brain*</div></div>
+        <div class="od-card reveal" style="--i:2"><div class="oi">👁️</div><div class="on">Cornea</div></div>
+        <div class="od-card reveal" style="--i:3"><div class="oi">🫀</div><div class="on">Liver</div></div>
+        <div class="od-card reveal" style="--i:4"><div class="oi">🫘</div><div class="on">Kidney</div></div>
+        <div class="od-card reveal" style="--i:5"><div class="oi">🦴</div><div class="on">Marrow</div></div>
+      </div>
+      <div class="od-panel reveal">
+        <h4>Waiting list &amp; matching</h4>
+        <div class="match-row">
+          <div class="match-ring">
+            <svg viewBox="0 0 56 56"><circle class="bgc" cx="28" cy="28" r="24"/><circle class="fgc" cx="28" cy="28" r="24" stroke-dasharray="150.8" stroke-dashoffset="150.8" data-pct="78"/></svg>
+            <div class="pct">78%</div>
+          </div>
+          <div class="match-text"><b>Kidney match rate</b><span>Within the current active waiting list</span></div>
+        </div>
+        <div class="match-row">
+          <div class="match-ring">
+            <svg viewBox="0 0 56 56"><circle class="bgc" cx="28" cy="28" r="24"/><circle class="fgc" cx="28" cy="28" r="24" stroke-dasharray="150.8" stroke-dashoffset="150.8" data-pct="61"/></svg>
+            <div class="pct">61%</div>
+          </div>
+          <div class="match-text"><b>Liver match rate</b><span>Average across partner hospitals</span></div>
+        </div>
+        <div class="ai-badge"><span class="dot"></span>AI verification active on every record</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 5: EMERGENCY SOS ============ -->
+  <section class="page-section" style="padding-left:0; padding-right:0;">
+    <div class="sos-section reveal">
+      <div class="sos-inner">
+        <button class="sos-btn" id="sosBtn">SOS</button>
+        <div class="sos-title">One tap alerts every compatible donor and hospital near you</div>
+        <div class="sos-sub">For life-threatening situations only. Your location and blood type are shared instantly with verified emergency responders.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 6: HOSPITALS ============ -->
+  <section class="page-section" id="hospitals">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Verified network</div>
+      <h2 class="section-title">Hospitals connected to LifeLink</h2>
+      <p class="section-sub">Every facility is verified before it can post a request or confirm a donation.</p>
+    </div>
+    <div class="hosp-grid stagger">
+      <div class="hosp-card reveal" style="--i:0">
+        <div class="hosp-map"><svg viewBox="0 0 300 120"><path d="M0,80 Q60,40 120,70 T300,50" stroke="#C0122F" stroke-width="2" fill="none" opacity="0.35"/><circle cx="150" cy="55" r="6" fill="#C0122F"/></svg></div>
+        <div class="hosp-body">
+          <div class="hosp-name">St. Aurelia Medical <span class="verified-tick">✓</span></div>
+          <div class="hosp-meta">Level-1 Trauma Center</div>
+          <div class="hosp-foot"><span class="hosp-dist">2.4 km away</span><span class="hosp-avail">Beds open</span></div>
+        </div>
+      </div>
+      <div class="hosp-card reveal" style="--i:1">
+        <div class="hosp-map"><svg viewBox="0 0 300 120"><path d="M0,60 Q80,90 160,55 T300,80" stroke="#C0122F" stroke-width="2" fill="none" opacity="0.35"/><circle cx="170" cy="60" r="6" fill="#C0122F"/></svg></div>
+        <div class="hosp-body">
+          <div class="hosp-name">Riverside General <span class="verified-tick">✓</span></div>
+          <div class="hosp-meta">Full transplant unit</div>
+          <div class="hosp-foot"><span class="hosp-dist">4.1 km away</span><span class="hosp-avail">Beds open</span></div>
+        </div>
+      </div>
+      <div class="hosp-card reveal" style="--i:2">
+        <div class="hosp-map"><svg viewBox="0 0 300 120"><path d="M0,90 Q90,30 180,60 T300,40" stroke="#C0122F" stroke-width="2" fill="none" opacity="0.35"/><circle cx="190" cy="55" r="6" fill="#C0122F"/></svg></div>
+        <div class="hosp-body">
+          <div class="hosp-name">Northgate Health <span class="verified-tick">✓</span></div>
+          <div class="hosp-meta">24/7 emergency intake</div>
+          <div class="hosp-foot"><span class="hosp-dist">6.7 km away</span><span class="hosp-avail">Limited</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 7: TESTIMONIALS ============ -->
+  <section class="page-section" style="padding-left:0; padding-right:0;">
+    <div class="section-head center reveal" style="padding:0 64px;">
+      <div class="section-eyebrow">Stories</div>
+      <h2 class="section-title">Real donors, real recipients</h2>
+    </div>
+    <div class="testi-viewport reveal">
+      <div class="testi-track" id="testiTrack"></div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 8: FAQ ============ -->
+  <section class="page-section" id="faq">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Questions</div>
+      <h2 class="section-title">Frequently asked questions</h2>
+    </div>
+    <div class="faq-list reveal">
+      <div class="faq-item">
+        <button class="faq-q"><span>Is donating blood through LifeLink safe?</span><span class="plus"></span></button>
+        <div class="faq-a"><p>Yes. All donations happen at verified hospitals and blood banks following standard medical screening — LifeLink only handles matching and notifications.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><span>How fast can an emergency request be matched?</span><span class="plus"></span></button>
+        <div class="faq-a"><p>Most emergency requests are matched with a nearby compatible donor in under 12 minutes, depending on blood type and location density.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><span>Can I register as both a blood and organ donor?</span><span class="plus"></span></button>
+        <div class="faq-a"><p>Yes. During registration you can opt into blood donation, organ donation, or both, and update your preferences at any time.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><span>How is my medical data protected?</span><span class="plus"></span></button>
+        <div class="faq-a"><p>Your records are encrypted and only shared with verified hospitals directly involved in a match — never sold or shown publicly.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo">
+          <svg class="logo-mark" viewBox="0 0 32 32" fill="none">
+            <path d="M16 27s-10.5-6.8-13.6-13C0.4 9.6 2.6 4.8 7 3.6c3-0.8 6 0.4 9 3.4 3-3 6-4.2 9-3.4 4.4 1.2 6.6 6 4.6 10.4C26.5 20.2 16 27 16 27Z" fill="#C0122F"/>
+            <path d="M4 15h4l2-5 3 10 2.5-6 1.5 3h9" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="logo-word">Life<span>Link</span></div>
+        </div>
+        <p class="footer-tag">Connecting blood and organ donors with the people who need them most — verified, fast, and always on.</p>
+        <div class="footer-social">
+          <a href="#" aria-label="Twitter">𝕏</a>
+          <a href="#" aria-label="Instagram">◎</a>
+          <a href="#" aria-label="LinkedIn">in</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h5>Platform</h5>
+        <a href="#find-blood">Find Blood</a>
+        <a href="#find-organs">Find Organs</a>
+        <a href="#hospitals">For Hospitals</a>
+        <a href="#how-it-works">How It Works</a>
+      </div>
+      <div class="footer-col">
+        <h5>Company</h5>
+        <a href="#">About Us</a>
+        <a href="#">Careers</a>
+        <a href="#">Press</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <div class="footer-col">
+        <h5>Emergency</h5>
+        <div class="footer-emergency">1-800-555-0142</div>
+        <p class="footer-tag" style="margin-top:8px;">Available 24/7 for critical blood and organ requests.</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 LifeLink. All rights reserved.</span>
+      <span>Privacy Policy · Terms of Service</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+
+  /* ---------------------------------------------------------
+     Typewriter (preserved)
+  --------------------------------------------------------- */
+  const fullText = "Find Blood & Organ Donors the Moment Someone Needs Them Most";
+  const darkLen = 45;
+  const el = document.getElementById('typewriter');
+  let i = 0;
+  function renderTyped(){
+    const shown = fullText.slice(0, i);
+    const darkPart = shown.slice(0, darkLen);
+    const redPart = shown.slice(darkLen);
+    el.innerHTML =
+      '<span style="color:#14060A">' + darkPart + '</span>' +
+      '<span style="color:#C0122F">' + redPart + '</span>' +
+      '<span class="cursor"></span>';
+  }
+  function typeStep(){
+    if(i <= fullText.length){ renderTyped(); i++; setTimeout(typeStep, 35); }
+  }
+  setTimeout(typeStep, 400);
+
+  /* ---------------------------------------------------------
+     Center count-up (preserved)
+  --------------------------------------------------------- */
+  function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+  function countUp(){
+    const target = 42, duration = 2000, start = performance.now();
+    const countEl = document.getElementById('countUp');
+    function frame(now){
+      const p = Math.min((now - start) / duration, 1);
+      const val = Math.floor(easeOutCubic(p) * target);
+      countEl.textContent = val + 'k+';
+      if(p < 1) requestAnimationFrame(frame); else countEl.textContent = target + 'k+';
+    }
+    requestAnimationFrame(frame);
+  }
+  setTimeout(countUp, 1200);
+
+  /* ---------------------------------------------------------
+     Impact stats strip count-up (preserved, IntersectionObserver)
+  --------------------------------------------------------- */
+  function formatNumber(n){ return n.toLocaleString('en-US'); }
+  function animateStat(elm, targetOverride, suffixOverride){
+    const target = targetOverride !== undefined ? targetOverride : parseInt(elm.dataset.target, 10);
+    const suffix = suffixOverride !== undefined ? suffixOverride : (elm.dataset.suffix || '');
+    const duration = 1800, start = performance.now();
+    function frame(now){
+      const p = Math.min((now - start) / duration, 1);
+      const val = Math.floor(easeOutCubic(p) * target);
+      elm.textContent = formatNumber(val) + suffix;
+      if(p < 1) requestAnimationFrame(frame); else elm.textContent = formatNumber(target) + suffix;
+    }
+    requestAnimationFrame(frame);
+  }
+  const statEls = document.querySelectorAll('.stats-strip .stat-number');
+  const statsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){ animateStat(entry.target); statsObserver.unobserve(entry.target); }
+    });
+  }, { threshold: 0.4 });
+  statEls.forEach(elm => statsObserver.observe(elm));
+
+  // section 1 big-num counters
+  const bigNums = document.querySelectorAll('.big-num[data-count]');
+  const bigNumObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        animateStat(entry.target, parseInt(entry.target.dataset.count, 10), '');
+        bigNumObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.4 });
+  bigNums.forEach(elm => bigNumObserver.observe(elm));
+
+  /* ---------------------------------------------------------
+     HUMAN LIFE NETWORK — hero animation
+  --------------------------------------------------------- */
+  const STAGE_SIZE = 720; // matches .hero-right css box
+  const CENTER = STAGE_SIZE / 2;
+
+  // organ definitions: ring radius (px from center, matches vessel path radii), angle (deg), icon, name, status
+  // one card per organ (no duplicates), spread evenly across the four rings
+  const organs = [
+    { icon:'🩸', name:'Blood Bank', status:'available', ring:1, angle:270 },
+    { icon:'🫁', name:'Lungs',      status:'available', ring:2, angle:40  },
+    { icon:'🧠', name:'Brain',      status:'available', ring:2, angle:160 },
+    { icon:'👁️', name:'Eye',        status:'available', ring:2, angle:280 },
+    { icon:'🫀', name:'Liver',      status:'low',       ring:3, angle:60  },
+    { icon:'🫘', name:'Kidney',     status:'available', ring:3, angle:180 },
+    { icon:'🦴', name:'Bone Marrow',status:'low',       ring:3, angle:300 },
+    { icon:'🫃', name:'Pancreas',   status:'available', ring:4, angle:90  }
+  ];
+
+  const ringRadius = { 1:176, 2:250, 3:324, 4:398 };
+
+  const organOrbit = document.getElementById('organOrbit');
+  const connectorsSvg = document.getElementById('connectorsSvg');
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const CSVG_CENTER = 360; // viewBox 720x720, center 360,360 — matches the heart's on-screen center
+
+  const panelData = {
+    'Blood Bank':   { icon:'🩸', donors: 214, hospitals: 38 },
+    'Lungs':        { icon:'🫁', donors: 12,  hospitals: 9  },
+    'Brain':        { icon:'🧠', donors: 0,   hospitals: 4  },
+    'Eye':          { icon:'👁️', donors: 46,  hospitals: 21 },
+    'Liver':        { icon:'🫀', donors: 7,   hospitals: 12 },
+    'Kidney':       { icon:'🫘', donors: 63,  hospitals: 27 },
+    'Bone Marrow':  { icon:'🦴', donors: 9,   hospitals: 6  },
+    'Pancreas':     { icon:'🫃', donors: 18,  hospitals: 8  }
+  };
+
+  const overlay = document.getElementById('organPanelOverlay');
+  const panelIcon = document.getElementById('panelIcon');
+  const panelName = document.getElementById('panelOrganName');
+  const panelDonors = document.getElementById('panelDonors');
+  const panelHospitals = document.getElementById('panelHospitals');
+  const panelClose = document.getElementById('panelClose');
+
+  function openPanel(organName){
+    const d = panelData[organName] || { icon:'🫀', donors:'—', hospitals:'—' };
+    panelIcon.textContent = d.icon;
+    panelName.textContent = organName.replace(' (R)','');
+    panelDonors.textContent = d.donors;
+    panelHospitals.textContent = d.hospitals;
+    overlay.classList.add('open');
+  }
+  function closePanel(){ overlay.classList.remove('open'); }
+  panelClose.addEventListener('click', closePanel);
+  overlay.addEventListener('click', (e) => { if(e.target === overlay) closePanel(); });
+
+  // build connector paths (heart -> organ position) as curved SVG paths
+  const connectorPaths = [];
+  organs.forEach((o, idx) => {
+    const rad = ringRadius[o.ring];
+    const angleRad = (o.angle - 90) * Math.PI / 180; // -90 so 0deg = top
+    const x = CSVG_CENTER + rad * Math.cos(angleRad);
+    const y = CSVG_CENTER + rad * Math.sin(angleRad);
+    const midX = CSVG_CENTER + (rad * 0.55) * Math.cos(angleRad - 0.15);
+    const midY = CSVG_CENTER + (rad * 0.55) * Math.sin(angleRad - 0.15);
+    const d = `M${CSVG_CENTER},${CSVG_CENTER} Q${midX},${midY} ${x},${y}`;
+
+    const basePath = document.createElementNS(svgNS, 'path');
+    basePath.setAttribute('class', 'connector-path');
+    basePath.setAttribute('d', d);
+    basePath.dataset.organIdx = idx;
+    connectorsSvg.appendChild(basePath);
+    connectorPaths.push({ path: basePath, length: basePath.getTotalLength(), organIdx: idx });
+
+    // create moving particle circle for this connector
+    const particle = document.createElementNS(svgNS, 'circle');
+    particle.setAttribute('r', 3.4);
+    particle.setAttribute('class', 'blood-particle');
+    connectorsSvg.appendChild(particle);
+    connectorPaths[connectorPaths.length - 1].particle = particle;
+    connectorPaths[connectorPaths.length - 1].offset = Math.random();
+    connectorPaths[connectorPaths.length - 1].speed = 0.00022 + Math.random() * 0.00012;
+  });
+
+  // build organ cards, positioned with the SAME angle/radius math used for the
+  // connector paths above, so each card sits exactly at its vessel's endpoint.
+  // Position is set via plain left/top (not "transform"), so it can never be
+  // clobbered by the entrance animation or by :hover — both of those only
+  // ever touch "transform" on other elements (card-enter / the card itself
+  // for hover-scale), never the left/top placement.
+  organs.forEach((o, idx) => {
+    const rad = ringRadius[o.ring];
+    const angleRad = (o.angle - 90) * Math.PI / 180;
+    const dx = rad * Math.cos(angleRad);
+    const dy = rad * Math.sin(angleRad);
+
+    const card = document.createElement('button');
+    card.className = 'organ-card' + (o.status === 'low' ? ' low' : '');
+    card.style.left = dx + 'px';
+    card.style.top = dy + 'px';
+    card.setAttribute('data-organ-idx', idx);
+    card.setAttribute('type', 'button');
+    card.innerHTML = `
+      <span class="card-enter" style="animation-delay:${(0.5 + idx * 0.12)}s">
+        <span class="float-inner">
+          <span class="icon-wrap">${o.icon}</span>
+          <span class="organ-name">${o.name}</span>
+          <span class="status-dot-row">
+            <span class="status-dot"></span>
+            <span class="status-text">${o.status === 'low' ? 'Low' : 'Available'}</span>
+          </span>
+        </span>
+      </span>
+    `;
+
+    card.addEventListener('click', () => openPanel(o.name));
+    card.addEventListener('mouseenter', () => setConnectorLit(idx, true));
+    card.addEventListener('mouseleave', () => setConnectorLit(idx, false));
+    card.addEventListener('focus', () => setConnectorLit(idx, true));
+    card.addEventListener('blur', () => setConnectorLit(idx, false));
+
+    organOrbit.appendChild(card);
+  });
+
+  function setConnectorLit(idx, lit){
+    const conn = connectorPaths[idx];
+    if(!conn) return;
+    conn.path.classList.toggle('lit', lit);
+    conn.lit = lit;
+  }
+
+  // vessel ring paths — light up randomly + on organ hover of matching ring
+  const vesselPaths = document.querySelectorAll('.vessel-path');
+
+  // animate particles along connectors continuously
+  let lastTs = performance.now();
+  function animateParticles(ts){
+    const dt = ts - lastTs; lastTs = ts;
+    connectorPaths.forEach(conn => {
+      const speed = conn.lit ? conn.speed * 3.2 : conn.speed;
+      conn.offset = (conn.offset + speed * dt) % 1;
+      const pt = conn.path.getPointAtLength(conn.offset * conn.length);
+      conn.particle.setAttribute('cx', pt.x);
+      conn.particle.setAttribute('cy', pt.y);
+      conn.particle.setAttribute('r', conn.lit ? 5 : 3.4);
+    });
+    requestAnimationFrame(animateParticles);
+  }
+  requestAnimationFrame(animateParticles);
+
+  // ambient vessel ring glow pulses (independent of hover)
+  function ambientGlow(){
+    const ring = vesselPaths[Math.floor(Math.random() * vesselPaths.length)];
+    ring.classList.add('lit');
+    setTimeout(() => ring.classList.remove('lit'), 900);
+    setTimeout(ambientGlow, 1400 + Math.random() * 1400);
+  }
+  setTimeout(ambientGlow, 2000);
+
+  /* ---------------------------------------------------------
+     Mouse parallax for hero network
+  --------------------------------------------------------- */
+  const stage = document.getElementById('lifeNetwork');
+  const parallaxLayer = document.getElementById('networkParallax');
+  const coreWrap = document.getElementById('coreWrap');
+  let targetX = 0, targetY = 0, curX = 0, curY = 0;
+
+  if(window.matchMedia('(pointer:fine)').matches){
+    stage.addEventListener('mousemove', (e) => {
+      const rect = stage.getBoundingClientRect();
+      const relX = (e.clientX - rect.left) / rect.width - 0.5;
+      const relY = (e.clientY - rect.top) / rect.height - 0.5;
+      targetX = relX; targetY = relY;
+    });
+    stage.addEventListener('mouseleave', () => { targetX = 0; targetY = 0; });
+
+    function parallaxLoop(){
+      curX += (targetX - curX) * 0.06;
+      curY += (targetY - curY) * 0.06;
+      parallaxLayer.style.transform = `translate(${curX * 16}px, ${curY * 16}px)`;
+      coreWrap.style.transform = `translate(-50%,-50%) rotate(${curX * 2}deg)`;
+      requestAnimationFrame(parallaxLoop);
+    }
+    requestAnimationFrame(parallaxLoop);
+  }
+
+  /* ---------------------------------------------------------
+     Emergency SOS button -> scroll or pulse feedback
+  --------------------------------------------------------- */
+  document.getElementById('sosBtn').addEventListener('click', function(){
+    this.style.transform = 'scale(0.94)';
+    setTimeout(() => { this.style.transform = ''; }, 180);
+  });
+
+  /* ---------------------------------------------------------
+     Scroll reveal for all sections
+  --------------------------------------------------------- */
+  const revealEls = document.querySelectorAll('.reveal');
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){ entry.target.classList.add('in-view'); revealObserver.unobserve(entry.target); }
+    });
+  }, { threshold: 0.15 });
+  revealEls.forEach(elm => revealObserver.observe(elm));
+
+  // timeline steps get their own observer to also trigger the progress line
+  const timelineSteps = document.querySelectorAll('.timeline-step');
+  const timelineProgress = document.getElementById('timelineProgress');
+  let maxStepReached = -1;
+  const timelineObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const idx = Array.from(timelineSteps).indexOf(entry.target);
+      if(entry.isIntersecting){
+        entry.target.classList.add('in-view');
+        if(idx > maxStepReached){
+          maxStepReached = idx;
+          const pct = ((idx + 1) / timelineSteps.length) * 1000;
+          timelineProgress.setAttribute('x2', pct);
+        }
+      }
+    });
+  }, { threshold: 0.5 });
+  timelineSteps.forEach(elm => timelineObserver.observe(elm));
+
+  /* ---------------------------------------------------------
+     Match rate rings (section 4)
+  --------------------------------------------------------- */
+  const matchRings = document.querySelectorAll('.match-ring .fgc');
+  const matchObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        const circle = entry.target;
+        const pct = parseInt(circle.dataset.pct, 10);
+        const circumference = 150.8;
+        const offset = circumference - (pct / 100) * circumference;
+        requestAnimationFrame(() => { circle.style.strokeDashoffset = offset; });
+        matchObserver.unobserve(circle);
+      }
+    });
+  }, { threshold: 0.4 });
+  matchRings.forEach(elm => matchObserver.observe(elm));
+
+  /* ---------------------------------------------------------
+     FAQ accordion
+  --------------------------------------------------------- */
+  document.querySelectorAll('.faq-item').forEach(item => {
+    const q = item.querySelector('.faq-q');
+    q.addEventListener('click', () => {
+      const wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(o => o.classList.remove('open'));
+      if(!wasOpen) item.classList.add('open');
+    });
+  });
+
+  /* ---------------------------------------------------------
+     Testimonials — build cards + duplicate track for seamless loop
+  --------------------------------------------------------- */
+  const testimonials = [
+    { quote:"I registered on a Tuesday and by Friday I'd donated a kidney to someone I'd never met. The matching process felt careful, not rushed.", name:'Maya R.', role:'Kidney Donor' },
+    { quote:"My son needed O-negative blood at 2am. LifeLink found three compatible donors within fifteen minutes.", name:'David K.', role:'Recipient Family' },
+    { quote:"As a hospital coordinator, the verification layer means I trust every request that comes through the network.", name:'Dr. Amina T.', role:'Transplant Coordinator' },
+    { quote:"Donating became a habit once I saw how directly it connected to someone's recovery timeline.", name:'Leo Fontaine', role:'Regular Blood Donor' },
+    { quote:"The waiting list transparency gave our family real answers instead of guesswork.", name:'Priya N.', role:'Liver Recipient Family' },
+    { quote:"Six hospitals, one shared system — LifeLink cut our average match time nearly in half.", name:'Dr. Samuel O.', role:'Hospital Director' }
+  ];
+  const testiTrack = document.getElementById('testiTrack');
+  function buildTestiCard(t){
+    const card = document.createElement('div');
+    card.className = 'testi-card';
+    const initials = t.name.split(' ').map(w => w[0]).join('').slice(0,2);
+    card.innerHTML = `
+      <p class="testi-quote">"${t.quote}"</p>
+      <div class="testi-person">
+        <div class="testi-avatar">${initials}</div>
+        <div>
+          <div class="testi-name">${t.name}</div>
+          <div class="testi-role">${t.role}</div>
+        </div>
+      </div>
+    `;
+    return card;
+  }
+  testimonials.concat(testimonials).forEach(t => testiTrack.appendChild(buildTestiCard(t)));
+
+})();
+</script>
+</body>
+</html>
