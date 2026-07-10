@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hospitals — LifeLink</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Urbanist:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .bd-hero{ position:relative; z-index:2; padding:150px 64px 60px; max-width:1400px; margin:0 auto; text-align:center; }
+  .bd-hero .section-eyebrow{ justify-content:center; }
+  .bd-hero h1{ font-family:'Urbanist',sans-serif; font-size:52px; font-weight:600; letter-spacing:-1.2px; line-height:1.1; margin:14px auto 0; max-width:760px; }
+  .bd-hero h1 span{ color:var(--red); }
+  .bd-hero p{ margin:20px auto 0; max-width:600px; font-size:16.5px; color:var(--ink-soft); line-height:1.6; }
+  .bd-crumb{ position:relative; z-index:2; padding:24px 64px 0; max-width:1400px; margin:0 auto; font-size:13px; color:var(--ink-soft); }
+  .bd-crumb a{ color:var(--red-deep); font-weight:600; }
+
+  .benefit-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:20px; }
+  .benefit-card{ background:var(--panel); backdrop-filter:blur(10px); border:1px solid rgba(192,18,47,0.12); border-radius:20px; padding:26px 24px; box-shadow:0 10px 26px rgba(192,18,47,0.06); }
+  .benefit-card .bi{ font-size:26px; margin-bottom:10px; }
+  .benefit-card h4{ font-family:'Urbanist',sans-serif; font-size:17px; margin-bottom:6px; }
+  .benefit-card p{ font-size:13.5px; color:var(--ink-soft); line-height:1.55; }
+
+  .form-shell{ display:grid; grid-template-columns:1.1fr 0.9fr; gap:36px; align-items:start; }
+  @media(max-width:900px){ .form-shell{ grid-template-columns:1fr; } }
+  .form-card{ background:var(--white); border-radius:22px; padding:32px; box-shadow:0 16px 40px rgba(192,18,47,0.10); border:1px solid rgba(192,18,47,0.08); }
+  .form-card h3{ font-family:'Urbanist',sans-serif; font-size:21px; margin-bottom:4px; }
+  .form-card .fc-sub{ font-size:13.5px; color:var(--ink-soft); margin-bottom:20px; }
+  .form-row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media(max-width:520px){ .form-row{ grid-template-columns:1fr; } }
+
+  .roster-card{ background:var(--panel); backdrop-filter:blur(10px); border:1px solid rgba(192,18,47,0.12); border-radius:22px; padding:26px; }
+  .roster-card h4{ font-family:'Urbanist',sans-serif; font-size:16px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
+  .roster-count{ background:var(--red); color:#fff; font-size:11.5px; font-weight:700; padding:3px 10px; border-radius:999px; }
+  .roster-list{ display:flex; flex-direction:column; gap:10px; max-height:340px; overflow-y:auto; }
+  .roster-item{ display:flex; align-items:center; gap:12px; background:var(--white); border-radius:14px; padding:11px 13px; border:1px solid rgba(192,18,47,0.08); }
+  .roster-bg{ width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg,var(--red),var(--red-deep)); color:#fff; font-size:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .roster-info b{ font-size:13.5px; display:block; }
+  .roster-info span{ font-size:11.5px; color:var(--ink-soft); }
+  .roster-empty{ font-size:13px; color:var(--ink-soft); text-align:center; padding:24px 0; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="toast-stack" id="toastStack"></div>
+
+  <header>
+    <div class="header-left">
+      <div class="logo">
+        <svg class="logo-mark" viewBox="0 0 32 32" fill="none">
+          <path d="M16 27s-10.5-6.8-13.6-13C0.4 9.6 2.6 4.8 7 3.6c3-0.8 6 0.4 9 3.4 3-3 6-4.2 9-3.4 4.4 1.2 6.6 6 4.6 10.4C26.5 20.2 16 27 16 27Z" fill="#C0122F"/>
+          <path d="M4 15h4l2-5 3 10 2.5-6 1.5 3h9" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="logo-word">Life<span>Link</span></div>
+      </div>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="blood-donor.html">Blood Donors</a>
+        <a href="organ-donor.html">Organ Donors</a>
+        <a href="hospitals.html" style="color:var(--red); font-weight:600;">Hospitals</a>
+        <a href="index.html#how-it-works">How It Works</a>
+      </nav>
+    </div>
+    <div class="header-right">
+      <a class="login-link" href="index.html">Log In</a>
+      <div class="btn-border-wrap">
+        <button class="btn-join" onclick="location.href='index.html'">Register Now</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="bd-crumb"><a href="index.html">Home</a> &nbsp;/&nbsp; Hospitals</div>
+
+  <section class="bd-hero reveal">
+    <div class="section-eyebrow">For hospitals</div>
+    <h1>Partner with LifeLink's verified <span>donor network</span></h1>
+    <p>Post blood and organ requests, get matched with nearby verified donors in minutes, and manage everything from one dashboard.</p>
+  </section>
+
+  <!-- ============ BENEFITS ============ -->
+  <section class="page-section" id="benefits">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Why partner</div>
+      <h2 class="section-title">Built for hospitals and blood banks</h2>
+      <p class="section-sub">LifeLink handles matching and notifications so your staff can focus on care.</p>
+    </div>
+    <div class="benefit-grid stagger">
+      <div class="benefit-card reveal" style="--i:0"><div class="bi">⚡</div><h4>Faster matching</h4><p>Average match time under 12 minutes for compatible donors nearby.</p></div>
+      <div class="benefit-card reveal" style="--i:1"><div class="bi">✅</div><h4>Verified requests only</h4><p>Every listing is checked against your facility's registration before it goes live.</p></div>
+      <div class="benefit-card reveal" style="--i:2"><div class="bi">📊</div><h4>Live dashboard</h4><p>Track open requests, statuses, and fulfilled matches in real time.</p></div>
+      <div class="benefit-card reveal" style="--i:3"><div class="bi">🔒</div><h4>Encrypted records</h4><p>Patient and donor data is encrypted and shared only with facilities directly involved in a match.</p></div>
+    </div>
+  </section>
+
+  <!-- ============ APPLICATION FORM ============ -->
+  <section class="page-section" id="apply">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Get started</div>
+      <h2 class="section-title">Apply to become a partner hospital</h2>
+      <p class="section-sub">Our verification team typically reviews applications within 2 business days.</p>
+    </div>
+
+    <div class="form-shell reveal">
+      <div class="form-card">
+        <h3>Partner application</h3>
+        <div class="fc-sub">Tell us about your facility.</div>
+        <div class="form-row">
+          <div class="ll-field"><label>Hospital / Facility Name</label><input type="text" id="hpName" placeholder="St. Aurelia Medical"></div>
+          <div class="ll-field"><label>Registration Number</label><input type="text" id="hpRegNo" placeholder="e.g. TS/HOSP/2024/1123"></div>
+        </div>
+        <div class="form-row">
+          <div class="ll-field"><label>Facility Type</label>
+            <select id="hpType">
+              <option>General Hospital</option>
+              <option>Trauma Center</option>
+              <option>Blood Bank</option>
+              <option>Transplant Center</option>
+              <option>Clinic</option>
+            </select>
+          </div>
+          <div class="ll-field"><label>City</label><input type="text" id="hpCity" placeholder="Hyderabad"></div>
+        </div>
+        <div class="form-row">
+          <div class="ll-field"><label>Contact Person</label><input type="text" id="hpContact" placeholder="Dr. Jane Doe"></div>
+          <div class="ll-field"><label>Contact Phone</label><input type="tel" id="hpPhone" placeholder="+91 90000 00000"></div>
+        </div>
+        <div class="ll-field"><label>Work Email</label><input type="email" id="hpEmail" placeholder="admin@hospital.org"></div>
+        <div class="ll-field">
+          <label><input type="checkbox" id="hpConsent" style="width:auto; margin-right:6px;">I confirm this facility is licensed and the details above are accurate</label>
+        </div>
+        <button class="ll-submit" id="hpApplyBtn">Submit Application</button>
+        <div class="ll-msg" id="hpApplyMsg"></div>
+      </div>
+
+      <div class="roster-card">
+        <h4>Recent applications <span class="roster-count" id="hpRosterCount">0</span></h4>
+        <div class="roster-list" id="hpRosterList">
+          <div class="roster-empty">No applications submitted yet on this device.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VERIFIED HOSPITALS ============ -->
+  <section class="page-section" id="verified">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Verified network</div>
+      <h2 class="section-title">Hospitals already connected to LifeLink</h2>
+      <p class="section-sub">Every facility below has completed verification and is actively matching requests.</p>
+    </div>
+    <div class="hosp-grid stagger">
+      <div class="hosp-card reveal" style="--i:0">
+        <div class="hosp-map"><svg viewBox="0 0 300 120"><path d="M0,80 Q60,40 120,70 T300,50" stroke="#C0122F" stroke-width="2" fill="none" opacity="0.35"/><circle cx="150" cy="55" r="6" fill="#C0122F"/></svg></div>
+        <div class="hosp-body">
+          <div class="hosp-name">St. Aurelia Medical <span class="verified-tick">✓</span></div>
+          <div class="hosp-meta">Level-1 Trauma Center</div>
+          <div class="hosp-foot"><span class="hosp-dist">2.4 km away</span><span class="hosp-avail">Beds open</span></div>
+        </div>
+      </div>
+      <div class="hosp-card reveal" style="--i:1">
+        <div class="hosp-map"><svg viewBox="0 0 300 120"><path d="M0,60 Q80,90 160,55 T300,80" stroke="#C0122F" stroke-width="2" fill="none" opacity="0.35"/><circle cx="170" cy="60" r="6" fill="#C0122F"/></svg></div>
+        <div class="hosp-body">
+          <div class="hosp-name">Riverside General <span class="verified-tick">✓</span></div>
+          <div class="hosp-meta">Full transplant unit</div>
+          <div class="hosp-foot"><span class="hosp-dist">4.1 km away</span><span class="hosp-avail">Beds open</span></div>
+        </div>
+      </div>
+      <div class="hosp-card reveal" style="--i:2">
+        <div class="hosp-map"><svg viewBox="0 0 300 120"><path d="M0,90 Q90,30 180,60 T300,40" stroke="#C0122F" stroke-width="2" fill="none" opacity="0.35"/><circle cx="190" cy="55" r="6" fill="#C0122F"/></svg></div>
+        <div class="hosp-body">
+          <div class="hosp-name">Northgate Health <span class="verified-tick">✓</span></div>
+          <div class="hosp-meta">24/7 emergency intake</div>
+          <div class="hosp-foot"><span class="hosp-dist">6.7 km away</span><span class="hosp-avail">Limited</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section class="page-section" id="faq">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Questions</div>
+      <h2 class="section-title">Hospital partnership FAQ</h2>
+    </div>
+    <div class="faq-list reveal">
+      <div class="faq-item">
+        <button class="faq-q"><span>Is there a cost to join as a partner hospital?</span><span class="plus"></span></button>
+        <div class="faq-a"><p>No — LifeLink is free for verified hospitals and blood banks to join and use.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><span>How long does verification take?</span><span class="plus"></span></button>
+        <div class="faq-a"><p>Most applications are reviewed within 2 business days once your registration number is confirmed.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><span>Can multiple staff accounts access the dashboard?</span><span class="plus"></span></button>
+        <div class="faq-a"><p>Yes, you can invite additional staff members to your hospital's dashboard after approval.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo">
+          <svg class="logo-mark" viewBox="0 0 32 32" fill="none">
+            <path d="M16 27s-10.5-6.8-13.6-13C0.4 9.6 2.6 4.8 7 3.6c3-0.8 6 0.4 9 3.4 3-3 6-4.2 9-3.4 4.4 1.2 6.6 6 4.6 10.4C26.5 20.2 16 27 16 27Z" fill="#C0122F"/>
+            <path d="M4 15h4l2-5 3 10 2.5-6 1.5 3h9" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="logo-word">Life<span>Link</span></div>
+        </div>
+        <p class="footer-tag">Connecting blood and organ donors with the people who need them most — verified, fast, and always on.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Platform</h5>
+        <a href="blood-donor.html">Blood Donors</a>
+        <a href="organ-donor.html">Organ Donors</a>
+        <a href="hospitals.html">Hospitals</a>
+        <a href="index.html#how-it-works">How It Works</a>
+      </div>
+      <div class="footer-col">
+        <h5>Company</h5>
+        <a href="index.html">About Us</a>
+        <a href="index.html#faq">FAQ</a>
+      </div>
+      <div class="footer-col">
+        <h5>Emergency</h5>
+        <div class="footer-emergency">1-800-555-0142</div>
+        <p class="footer-tag" style="margin-top:8px;">Available 24/7 for critical blood and organ requests.</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 LifeLink. All rights reserved.</span>
+      <span>Privacy Policy · Terms of Service</span>
+    </div>
+  </footer>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  function renderRoster(){
+    const list = document.getElementById('hpRosterList');
+    const apps = LifeLinkDB.all('ll_hospital_applications');
+    document.getElementById('hpRosterCount').textContent = apps.length;
+    if(!apps.length){
+      list.innerHTML = '<div class="roster-empty">No applications submitted yet on this device.</div>';
+      return;
+    }
+    list.innerHTML = apps.slice(0,8).map(a => `
+      <div class="roster-item">
+        <div class="roster-bg">🏥</div>
+        <div class="roster-info"><b>${a.name}</b><span>${a.type} · ${a.city || 'Unknown city'}</span></div>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('hpApplyBtn').addEventListener('click', () => {
+    const err = validateFields([
+      { id:'hpName', label:'Hospital Name', required:true },
+      { id:'hpRegNo', label:'Registration Number', required:true },
+      { id:'hpCity', label:'City', required:true },
+      { id:'hpContact', label:'Contact Person', required:true },
+      { id:'hpPhone', label:'Contact Phone', required:true, phone:true },
+      { id:'hpEmail', label:'Work Email', required:true, email:true }
+    ]);
+    const msg = document.getElementById('hpApplyMsg');
+    if(err){ msg.textContent = err; msg.style.color = 'var(--red)'; return; }
+    if(!document.getElementById('hpConsent').checked){
+      msg.textContent = 'Please confirm the accuracy checkbox.'; msg.style.color = 'var(--red)'; return;
+    }
+    const record = {
+      name: document.getElementById('hpName').value.trim(),
+      regNo: document.getElementById('hpRegNo').value.trim(),
+      type: document.getElementById('hpType').value,
+      city: document.getElementById('hpCity').value.trim(),
+      contact: document.getElementById('hpContact').value.trim(),
+      phone: document.getElementById('hpPhone').value.trim(),
+      email: document.getElementById('hpEmail').value.trim()
+    };
+    LifeLinkDB.add('ll_hospital_applications', record);
+    msg.textContent = '';
+    showToast('Application submitted — our team will be in touch within 2 business days.');
+    ['hpName','hpRegNo','hpCity','hpContact','hpPhone','hpEmail'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('hpConsent').checked = false;
+    renderRoster();
+  });
+
+  renderRoster();
+</script>
+</body>
+</html>
