@@ -611,6 +611,35 @@
 
   /* ============ DASHBOARD ============ */
   .dash-link{ font-size:13px; font-weight:600; color:var(--red-deep); }
+
+  /* profile settings floating window */
+  .profile-settings-wrap{ position:relative; display:inline-flex; }
+  .profile-settings-btn{
+    width:30px; height:30px; border-radius:50%; background:rgba(122,0,25,0.08);
+    display:flex; align-items:center; justify-content:center; font-size:14px;
+    color:var(--red-deep); transition:background .2s ease, transform .2s ease;
+  }
+  .profile-settings-btn:hover{ background:rgba(122,0,25,0.16); transform:rotate(25deg); }
+  .profile-settings-panel{
+    display:none; position:absolute; top:calc(100% + 12px); right:0; width:290px;
+    background:var(--white); border-radius:16px; padding:18px 18px 16px; z-index:900;
+    box-shadow:0 20px 50px rgba(20,6,10,0.28); text-align:left;
+  }
+  .profile-settings-panel.open{ display:block; }
+  .profile-settings-panel::before{
+    content:""; position:absolute; top:-7px; right:14px; width:14px; height:14px;
+    background:var(--white); transform:rotate(45deg); box-shadow:-3px -3px 6px rgba(20,6,10,0.04);
+  }
+  .profile-settings-panel h4{ font-family:'Urbanist', sans-serif; font-size:15px; font-weight:700; margin-bottom:10px; color:var(--ink); }
+  .profile-settings-panel .ll-field{ margin-bottom:10px; }
+  .profile-settings-panel .ll-field label{ font-size:11.5px; }
+  .profile-settings-panel .ll-submit{ padding:10px; font-size:13px; }
+  .profile-settings-close{
+    position:absolute; top:14px; right:14px; width:22px; height:22px; border-radius:50%;
+    background:rgba(122,0,25,0.08); display:flex; align-items:center; justify-content:center;
+    font-size:11px; color:var(--red-deep);
+  }
+  .profile-settings-close:hover{ background:rgba(122,0,25,0.16); }
   .dash-overlay{ display:none; position:fixed; inset:0; z-index:800; background:rgba(20,6,10,0.55); backdrop-filter:blur(6px); align-items:flex-start; justify-content:center; padding:60px 20px; overflow-y:auto; }
   .dash-overlay.open{ display:flex; }
   .dash-panel{ background:var(--white); border-radius:20px; padding:28px 30px; width:100%; max-width:760px; position:relative; box-shadow:0 30px 80px rgba(20,6,10,0.3); }
@@ -1111,6 +1140,9 @@
       <div class="ll-field">
         <label><input type="checkbox" id="regOrganDonor" style="width:auto; margin-right:6px;">Also register as an organ donor</label>
       </div>
+      <div class="ll-field">
+        <label><input type="checkbox" id="regIsDoctor" style="width:auto; margin-right:6px;">I'm a doctor</label>
+      </div>
       <button class="ll-submit" id="registerSubmit">Create Account</button>
       <div class="ll-msg" id="registerMsg"></div>
       <div class="ll-switch">Already have an account? <button id="toLogin">Log in</button></div>
@@ -1196,6 +1228,22 @@
       <tbody id="dashTableBody"></tbody>
     </table>
     <div class="dash-empty" id="dashEmpty" style="display:none;">No open requests right now.</div>
+  </div>
+</div>
+
+<!-- ============ ORGAN DONOR LIST (doctors only) ============ -->
+<div class="dash-overlay" id="organDonorOverlay">
+  <div class="dash-panel">
+    <button class="ll-close" id="organDonorClose">✕</button>
+    <h3>Registered Organ Donors</h3>
+    <div class="ll-sub">Visible to verified doctor accounts only. Contact details are shared for medical coordination purposes.</div>
+    <table class="dash-table">
+      <thead>
+        <tr><th>Name</th><th>Blood Group</th><th>Phone</th><th>Registered</th></tr>
+      </thead>
+      <tbody id="organDonorTableBody"></tbody>
+    </table>
+    <div class="dash-empty" id="organDonorEmpty" style="display:none;">No organ donors found.</div>
   </div>
 </div>
 
@@ -1576,29 +1624,47 @@
       // then the profiles table, and only fall back to the email's local part — never the raw email.
       let name = (user.user_metadata && user.user_metadata.full_name) || (user.email ? user.email.split('@')[0] : 'there');
       let role = 'donor';
+      let phone = '';
       let donationCount = 0;
       try{
-        const { data: profile } = await sb.from('profiles').select('full_name, role').eq('id', user.id).single();
+        const { data: profile } = await sb.from('profiles').select('full_name, role, phone').eq('id', user.id).single();
         if(profile && profile.full_name) name = profile.full_name;
         if(profile && profile.role) role = profile.role;
+        if(profile && profile.phone) phone = profile.phone;
       }catch(e){}
       try{
         const { count } = await sb.from('donations').select('id', { count: 'exact', head: true }).eq('donor_id', user.id);
         donationCount = count || 0;
       }catch(e){}
 
+      const isDoctor = role === 'doctor';
       const streakHtml = donationCount > 0
         ? `<span class="streak-badge"><span class="flame">🔥</span>${donationCount} donation${donationCount === 1 ? '' : 's'}</span>`
         : '';
       const dashHtml = (role === 'admin' || role === 'hospital')
         ? `<button class="dash-link" id="dashLinkBtn">Dashboard</button>`
         : '';
+      const organListHtml = isDoctor
+        ? `<button class="dash-link" id="organDonorLinkBtn">Organ Donor List</button>`
+        : '';
 
       headerRight.innerHTML = `
         <div class="ll-userbar">
           ${dashHtml}
+          ${organListHtml}
           ${streakHtml}
-          <span>👋 ${name}</span>
+          <span>👋 ${name}${isDoctor ? ' (Doctor)' : ''}</span>
+          <div class="profile-settings-wrap">
+            <button class="profile-settings-btn" id="profileSettingsBtn" title="Profile settings" aria-label="Profile settings">⚙</button>
+            <div class="profile-settings-panel" id="profileSettingsPanel">
+              <button class="profile-settings-close" id="profileSettingsCloseBtn">✕</button>
+              <h4>Profile Settings</h4>
+              <div class="ll-field"><label>Email</label><input type="email" id="settingsEmail" value="${user.email || ''}"></div>
+              <div class="ll-field"><label>Phone</label><input type="tel" id="settingsPhone" value="${phone}" placeholder="+91 90000 00000"></div>
+              <button class="ll-submit" id="settingsSaveBtn">Save Changes</button>
+              <div class="ll-msg" id="settingsMsg"></div>
+            </div>
+          </div>
           <button class="ll-logout" id="logoutBtn">Log out</button>
         </div>
       `;
@@ -1608,6 +1674,47 @@
       });
       const dashBtn = document.getElementById('dashLinkBtn');
       if(dashBtn) dashBtn.addEventListener('click', openDashboard);
+      const organListBtn = document.getElementById('organDonorLinkBtn');
+      if(organListBtn) organListBtn.addEventListener('click', openOrganDonorList);
+
+      // ---- floating profile settings panel wiring ----
+      const settingsBtn = document.getElementById('profileSettingsBtn');
+      const settingsPanel = document.getElementById('profileSettingsPanel');
+      settingsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        settingsPanel.classList.toggle('open');
+      });
+      document.getElementById('profileSettingsCloseBtn').addEventListener('click', () => {
+        settingsPanel.classList.remove('open');
+      });
+      document.addEventListener('click', (e) => {
+        if(settingsPanel.classList.contains('open') && !settingsPanel.contains(e.target) && e.target !== settingsBtn){
+          settingsPanel.classList.remove('open');
+        }
+      });
+      document.getElementById('settingsSaveBtn').addEventListener('click', async () => {
+        const newEmail = document.getElementById('settingsEmail').value.trim();
+        const newPhone = document.getElementById('settingsPhone').value.trim();
+        const saveBtn = document.getElementById('settingsSaveBtn');
+        saveBtn.disabled = true; saveBtn.textContent = 'Saving...';
+        let hadError = false;
+
+        if(newEmail && newEmail !== user.email){
+          const { error: emailError } = await sb.auth.updateUser({ email: newEmail });
+          if(emailError){ hadError = true; showMsg('settingsMsg', emailError.message, true); }
+        }
+        try{
+          const { error: phoneError } = await sb.from('profiles').update({ phone: newPhone }).eq('id', user.id);
+          if(phoneError){ hadError = true; showMsg('settingsMsg', phoneError.message, true); }
+        }catch(e){ hadError = true; }
+
+        saveBtn.disabled = false; saveBtn.textContent = 'Save Changes';
+        if(!hadError){
+          showMsg('settingsMsg', 'Saved! Check your inbox to confirm if you changed your email.', false);
+          showToast('Profile updated successfully.', false);
+          await refreshAuthUI();
+        }
+      });
     } else {
       headerRight.innerHTML = `
         <a class="login-link" href="#" id="loginLink">Log In</a>
@@ -1717,6 +1824,7 @@
     const phone = document.getElementById('regPhone').value.trim();
     const bloodGroup = document.getElementById('regBloodGroup').value;
     const isOrganDonor = document.getElementById('regOrganDonor').checked;
+    const isDoctor = document.getElementById('regIsDoctor').checked;
 
     if(!name || !email || !password){ showMsg('registerMsg', 'Name, email and password are required.', true); return; }
     if(password.length < 6){ showMsg('registerMsg', 'Password must be at least 6 characters.', true); return; }
@@ -1729,7 +1837,7 @@
     // is required and there is no active session yet.
     const { data: signUpData, error: signUpError } = await sb.auth.signUp({
       email, password,
-      options: { data: { full_name: name, phone: phone, blood_group: bloodGroup, is_organ_donor: isOrganDonor, role: 'donor' } }
+      options: { data: { full_name: name, phone: phone, blood_group: bloodGroup, is_organ_donor: isOrganDonor, role: isDoctor ? 'doctor' : 'donor' } }
     });
     if(signUpError){
       btn.disabled = false; btn.textContent = 'Create Account';
@@ -2062,6 +2170,43 @@
   function openModal2(id){ document.getElementById(id).classList.add('open'); }
   document.getElementById('dashClose').addEventListener('click', () => document.getElementById('dashOverlay').classList.remove('open'));
   document.getElementById('dashOverlay').addEventListener('click', (e) => { if(e.target.id === 'dashOverlay') e.target.classList.remove('open'); });
+
+  // ---------- ORGAN DONOR LIST (doctors only) ----------
+  // Note: this list is gated client-side by role for UI purposes only. For real
+  // protection, add a Supabase RLS policy on `profiles` restricting rows where
+  // is_organ_donor = true to requesters whose own profile has role = 'doctor'.
+  async function openOrganDonorList(){
+    openModal2('organDonorOverlay');
+    const tbody = document.getElementById('organDonorTableBody');
+    const emptyEl = document.getElementById('organDonorEmpty');
+    tbody.innerHTML = '';
+    emptyEl.style.display = 'none';
+
+    const { data: donors, error } = await sb
+      .from('profiles')
+      .select('full_name, blood_group, phone, is_organ_donor, created_at')
+      .eq('is_organ_donor', true)
+      .order('created_at', { ascending: false })
+      .limit(200);
+
+    if(error || !donors || donors.length === 0){
+      emptyEl.style.display = 'block';
+      return;
+    }
+
+    donors.forEach(d => {
+      const tr = document.createElement('tr');
+      const when = d.created_at ? new Date(d.created_at).toLocaleDateString() : '—';
+      tr.innerHTML = `
+        <td>${d.full_name || '—'}</td>
+        <td>${d.blood_group || '—'}</td>
+        <td>${d.phone || '—'}</td>
+        <td>${when}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+  document.getElementById('organDonorClose').addEventListener('click', () => document.getElementById('organDonorOverlay').classList.remove('open'));
+  document.getElementById('organDonorOverlay').addEventListener('click', (e) => { if(e.target.id === 'organDonorOverlay') e.target.classList.remove('open'); });
 
   // ---------- init ----------
   refreshAuthUI();
