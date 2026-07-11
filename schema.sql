@@ -9,7 +9,7 @@ create extension if not exists postgis;
 create extension if not exists pgcrypto;
 
 -- ============================================================
--- 1. PROFILES  (donors, hospitals-as-users, admins)
+-- 1. PROFILES  (donors, hospitals-as-users, admins) 
 --    id matches auth.users.id — created automatically on signup
 -- ============================================================
 create table if not exists profiles (
