@@ -8,6 +8,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Urbanist:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  // Preflight is disabled so Tailwind only ever ADDS utility classes for
+  // mobile alignment — it never resets or overrides the site's existing
+  // fonts, buttons, headings, etc. Nothing about the current design changes.
+  tailwind.config = { corePlugins: { preflight: false } };
+</script>
 <style>
   :root{
     --red:        #C0122F;
@@ -792,9 +799,9 @@
     </defs>
   </svg>
 
-  <!-- ============ HEADER (preserved) ============ -->
+  <!-- ============ HEADER (preserved; Tailwind utility classes added only for mobile alignment) ============ -->
   <header>
-    <div class="header-left">
+    <div class="header-left max-md:gap-3">
       <div class="logo">
         <svg class="logo-mark" viewBox="0 0 32 32" fill="none">
           <path d="M16 27s-10.5-6.8-13.6-13C0.4 9.6 2.6 4.8 7 3.6c3-0.8 6 0.4 9 3.4 3-3 6-4.2 9-3.4 4.4 1.2 6.6 6 4.6 10.4C26.5 20.2 16 27 16 27Z" fill="#C0122F"/>
@@ -802,20 +809,72 @@
         </svg>
         <div class="logo-word">Life<span>Link</span></div>
       </div>
-      <nav>
+      <nav class="max-md:hidden">
         <a href="#find-blood">Find Blood</a>
-        <a href="#find-organs">Find Organs</a>
+        <a href="#find-organs" onclick="guardDoctorOnlyNav(event)">Find Organs</a>
         <a href="#health-centers">For Health Centers</a>
         <a href="#how-it-works">How It Works</a>
       </nav>
     </div>
-    <div class="header-right" id="headerRight">
-      <a class="login-link" href="#" id="loginLink">Log In</a>
+    <div class="header-right max-md:gap-2" id="headerRight">
+      <a class="login-link max-[420px]:hidden" href="#" id="loginLink">Log In</a>
       <div class="btn-border-wrap">
-        <button class="btn-join" id="joinBtn">Register Now</button>
+        <button class="btn-join max-md:!px-4 max-md:!py-2.5 max-md:!text-[13px]" id="joinBtn">Register Now</button>
       </div>
+      <!-- mobile hamburger — only ever visible below md, toggles the panel below -->
+      <button
+        id="mobileNavToggle"
+        aria-label="Open menu"
+        aria-expanded="false"
+        class="hidden max-md:flex items-center justify-center w-9 h-9 rounded-full bg-[rgba(122,0,25,0.08)] text-[#7A0019] shrink-0">
+        <svg id="mobileNavIconOpen" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <svg id="mobileNavIconClose" width="14" height="14" viewBox="0 0 14 14" fill="none" class="hidden"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
     </div>
   </header>
+
+  <!-- ============ MOBILE NAV PANEL (Tailwind-only, mirrors the same links; hidden on desktop) ============ -->
+  <div id="mobileNavPanel" class="hidden max-md:hidden flex-col gap-1 mx-4 mb-3 p-3 rounded-2xl bg-white shadow-[0_20px_50px_rgba(20,6,10,0.18)] border border-[rgba(192,18,47,0.12)] relative z-40">
+    <a href="#find-blood" class="mobile-nav-link block px-3 py-2.5 rounded-xl text-[14.5px] text-[#14060A] hover:bg-[rgba(192,18,47,0.06)]">Find Blood</a>
+    <a href="#find-organs" class="mobile-nav-link block px-3 py-2.5 rounded-xl text-[14.5px] text-[#14060A] hover:bg-[rgba(192,18,47,0.06)]" onclick="guardDoctorOnlyNav(event)">Find Organs</a>
+    <a href="#health-centers" class="mobile-nav-link block px-3 py-2.5 rounded-xl text-[14.5px] text-[#14060A] hover:bg-[rgba(192,18,47,0.06)]">For Health Centers</a>
+    <a href="#how-it-works" class="mobile-nav-link block px-3 py-2.5 rounded-xl text-[14.5px] text-[#14060A] hover:bg-[rgba(192,18,47,0.06)]">How It Works</a>
+    <div class="h-px bg-[rgba(192,18,47,0.1)] my-1"></div>
+    <a href="#" id="mobileLoginLink" class="block px-3 py-2.5 rounded-xl text-[14.5px] font-medium text-[#14060A] hover:bg-[rgba(192,18,47,0.06)]">Log In</a>
+  </div>
+  <script>
+    // Pure UI wiring for the mobile menu — toggles visibility only, doesn't
+    // touch any existing desktop behavior, styles, or classes.
+    (function(){
+      const toggle = document.getElementById('mobileNavToggle');
+      const panel = document.getElementById('mobileNavPanel');
+      const iconOpen = document.getElementById('mobileNavIconOpen');
+      const iconClose = document.getElementById('mobileNavIconClose');
+      const mobileLogin = document.getElementById('mobileLoginLink');
+      function closePanel(){
+        panel.classList.add('hidden'); panel.classList.remove('flex');
+        iconOpen.classList.remove('hidden'); iconClose.classList.add('hidden');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+      function openPanel(){
+        panel.classList.remove('hidden'); panel.classList.add('flex');
+        iconOpen.classList.add('hidden'); iconClose.classList.remove('hidden');
+        toggle.setAttribute('aria-expanded', 'true');
+      }
+      toggle.addEventListener('click', () => {
+        const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+        isOpen ? closePanel() : openPanel();
+      });
+      panel.querySelectorAll('a').forEach(a => a.addEventListener('click', closePanel));
+      mobileLogin.addEventListener('click', (e) => {
+        e.preventDefault();
+        closePanel();
+        const realLogin = document.getElementById('loginLink');
+        if(realLogin) realLogin.click();
+      });
+      window.addEventListener('resize', () => { if(window.innerWidth > 768) closePanel(); });
+    })();
+  </script>
 
   <!-- ============ HERO ============ -->
   <section class="hero">
@@ -1025,7 +1084,12 @@
       <h2 class="section-title">Matching built on verified medical data</h2>
       <p class="section-sub">Every organ listing is checked against health center records before it ever reaches the waiting list.</p>
     </div>
-    <div class="organ-donation-grid">
+    <div id="organSectionLocked" class="organ-locked-msg" style="display:block; text-align:center; max-width:460px; margin:0 auto; padding:40px 24px; background:rgba(192,18,47,0.05); border-radius:16px;">
+      <div style="font-size:34px; margin-bottom:10px;">🔒</div>
+      <h4 style="font-family:'Urbanist', sans-serif; font-size:19px; font-weight:700; margin-bottom:8px;">Doctors only</h4>
+      <p style="font-size:14px; color:var(--ink-soft); line-height:1.5;">Organ donation &amp; matching data is accessible only to verified doctor accounts. Please log in with a doctor account, or register as a doctor, to view this section.</p>
+    </div>
+    <div id="organSectionContent" class="organ-donation-grid" style="display:none;">
       <div class="od-cards stagger">
         <div class="od-card reveal" style="--i:0"><div class="oi">🫁</div><div class="on">Lungs</div></div>
         <div class="od-card reveal" style="--i:1"><div class="oi">🧠</div><div class="on">Brain*</div></div>
@@ -1174,7 +1238,7 @@
       <div class="footer-col">
         <h5>Platform</h5>
         <a href="#find-blood">Find Blood</a>
-        <a href="#find-organs">Find Organs</a>
+        <a href="#find-organs" onclick="guardDoctorOnlyNav(event)">Find Organs</a>
         <a href="#health-centers">For Health Centers</a>
         <a href="#how-it-works">How It Works</a>
       </div>
@@ -1425,26 +1489,30 @@
 
 <!-- ============ HOSPITAL / ADMIN DASHBOARD ============ -->
 <div class="dash-overlay" id="dashOverlay">
-  <div class="dash-panel">
+  <div class="dash-panel max-md:!p-5 max-md:!max-w-[92vw]">
     <button class="ll-close" id="dashClose">✕</button>
     <h3>Requests Dashboard</h3>
     <div class="ll-sub">Open blood &amp; organ requests across the network. Update status as they're matched or fulfilled.</div>
-    <table class="dash-table">
-      <thead>
-        <tr><th>Type</th><th>Need</th><th>Urgency</th><th>Requested</th><th>Status</th></tr>
-      </thead>
-      <tbody id="dashTableBody"></tbody>
-    </table>
+    <div class="max-md:overflow-x-auto max-md:-mx-1">
+      <table class="dash-table max-md:min-w-[520px]">
+        <thead>
+          <tr><th>Type</th><th>Need</th><th>Urgency</th><th>Requested</th><th>Status</th></tr>
+        </thead>
+        <tbody id="dashTableBody"></tbody>
+      </table>
+    </div>
     <div class="dash-empty" id="dashEmpty" style="display:none;">No open requests right now.</div>
 
     <h3 style="margin-top:26px;">Doctor Verifications</h3>
     <div class="ll-sub">Doctors who signed up with a health center name &amp; NMR ID, awaiting review.</div>
-    <table class="dash-table">
-      <thead>
-        <tr><th>Name</th><th>Health Center</th><th>NMR ID</th><th>Status</th><th></th></tr>
-      </thead>
-      <tbody id="doctorVerifyTableBody"></tbody>
-    </table>
+    <div class="max-md:overflow-x-auto max-md:-mx-1">
+      <table class="dash-table max-md:min-w-[480px]">
+        <thead>
+          <tr><th>Name</th><th>Health Center</th><th>NMR ID</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody id="doctorVerifyTableBody"></tbody>
+      </table>
+    </div>
     <div class="dash-empty" id="doctorVerifyEmpty" style="display:none;">No doctor accounts pending verification.</div>
   </div>
 </div>
@@ -1677,6 +1745,10 @@
   const panelClose = document.getElementById('panelClose');
 
   function openPanel(organName){
+    if(organName !== 'Blood Bank' && !isDoctorUser()){
+      showToast('Organ details are accessible to doctors only.', true);
+      return;
+    }
     const d = panelData[organName] || { icon:'🫀', donors:'—', hospitals:'—' };
     panelIcon.innerHTML = d.icon;
     panelName.textContent = organName.replace(' (R)','');
@@ -1947,6 +2019,26 @@
 
   let currentUser = null;
   let currentUserDoctorVerified = false; // gates visibility of other donors' phone/email
+  let currentUserRole = null; // 'donor' | 'doctor' | 'admin' | 'hospital' | null (logged out)
+  function isDoctorUser(){ return currentUserRole === 'doctor'; }
+  function updateOrganSectionAccess(){
+    const lockedEl = document.getElementById('organSectionLocked');
+    const contentEl = document.getElementById('organSectionContent');
+    if(!lockedEl || !contentEl) return;
+    if(isDoctorUser()){
+      lockedEl.style.display = 'none';
+      contentEl.style.display = '';
+    } else {
+      lockedEl.style.display = 'block';
+      contentEl.style.display = 'none';
+    }
+  }
+  function guardDoctorOnlyNav(e){
+    if(!isDoctorUser()){
+      e.preventDefault();
+      showToast('This section is accessible to doctors only.', true);
+    }
+  }
 
   async function refreshAuthUI(){
     const { data: { user } } = await sb.auth.getUser();
@@ -1969,6 +2061,8 @@
         if(profile && profile.role) role = profile.role;
         currentUserDoctorVerified = !!(profile && profile.doctor_verified);
       }catch(e){}
+      currentUserRole = role;
+      updateOrganSectionAccess();
       try{
         const { count } = await sb.from('donations').select('id', { count: 'exact', head: true }).eq('donor_id', user.id);
         donationCount = count || 0;
@@ -1999,6 +2093,8 @@
       document.getElementById('settingsLinkBtn').addEventListener('click', openSettingsModal);
     } else {
       currentUserDoctorVerified = false;
+      currentUserRole = null;
+      updateOrganSectionAccess();
       headerRight.innerHTML = `
         <a class="login-link" href="#" id="loginLink">Log In</a>
         <div class="btn-border-wrap">
