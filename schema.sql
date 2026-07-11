@@ -1,241 +1,197 @@
--- ============================================================
--- LifeLink — Supabase schema
--- Run this in: Supabase Dashboard → SQL Editor → New query → Run
--- Matches the sb.from()/sb.rpc() calls already present in app.js
--- ============================================================
+CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- Needed for geography (lat/lng distance) columns + gen_random_uuid()
-create extension if not exists postgis;
-create extension if not exists pgcrypto;
+CREATE TYPE user_role AS ENUM ('donor', 'doctor', 'admin');
+CREATE TYPE request_type AS ENUM ('blood', 'organ');
+CREATE TYPE request_status AS ENUM ('open', 'matched', 'fulfilled', 'cancelled', 'expired');
+CREATE TYPE urgency_level AS ENUM ('low', 'medium', 'high', 'critical');
+CREATE TYPE gender_type AS ENUM ('male', 'female', 'other');
 
--- ============================================================
--- 1. PROFILES  (donors, hospitals-as-users, admins) 
---    id matches auth.users.id — created automatically on signup
--- ============================================================
-create table if not exists profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  full_name text,
-  phone text,
-  blood_group text,
-  is_organ_donor boolean default false,
-  role text not null default 'donor' check (role in ('donor','recipient','hospital','admin')),
-  location geography(Point, 4326),
-  verified boolean default false,
-  availability_status text default 'available' check (availability_status in ('available','unavailable')),
-  last_donation_date date,
-  created_at timestamptz default now()
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  email_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
+  confirmation_token TEXT,
+  confirmation_sent_at TIMESTAMPTZ,
+  reset_token TEXT,
+  reset_token_expires_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- ============================================================
--- 2. HOSPITALS
--- ============================================================
-create table if not exists hospitals (
-  id uuid primary key default gen_random_uuid(),
-  name text not null,
-  license_number text,
-  contact_person text,
-  phone text,
-  email text,
-  address text,
-  category text,               -- e.g. 'Blood Bank', 'Multi-specialty'
-  location geography(Point, 4326),
-  verified boolean default false,
-  created_at timestamptz default now()
+CREATE TABLE profiles (
+  id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  full_name TEXT,
+  phone TEXT,
+  blood_group TEXT,
+  is_organ_donor BOOLEAN NOT NULL DEFAULT FALSE,
+  role user_role NOT NULL DEFAULT 'donor',
+  is_doctor BOOLEAN NOT NULL DEFAULT FALSE,
+  hospital_name TEXT,
+  nmr_id TEXT,
+  doctor_verified BOOLEAN NOT NULL DEFAULT FALSE,
+  age INTEGER,
+  gender gender_type,
+  has_health_condition BOOLEAN NOT NULL DEFAULT FALSE,
+  health_issues TEXT,
+  is_available BOOLEAN NOT NULL DEFAULT TRUE,
+  location GEOGRAPHY(Point, 4326),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- ============================================================
--- 3. DONATIONS  (history — used for the "My donations" count)
--- ============================================================
-create table if not exists donations (
-  id uuid primary key default gen_random_uuid(),
-  donor_id uuid references profiles(id) on delete cascade,
-  type text check (type in ('blood','organ')),
-  organ_type text,
-  hospital_id uuid references hospitals(id),
-  donation_date date default now(),
-  created_at timestamptz default now()
+CREATE TABLE donations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  donor_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  blood_group TEXT,
+  marked_by UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- ============================================================
--- 4. REQUESTS  (blood + organ requests, incl. SOS)
--- ============================================================
-create table if not exists requests (
-  id uuid primary key default gen_random_uuid(),
-  requester_id uuid references profiles(id) on delete cascade,
-  request_type text not null check (request_type in ('blood','organ')),
-  blood_group text,
-  organ_type text,
-  urgency text check (urgency in ('low','medium','high','critical')),
-  status text not null default 'open' check (status in ('open','matched','fulfilled','cancelled','expired')),
-  location geography(Point, 4326),
-  created_at timestamptz default now()
+CREATE TABLE requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  requester_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  request_type request_type NOT NULL,
+  blood_group TEXT,
+  organ_type TEXT,
+  urgency urgency_level NOT NULL DEFAULT 'medium',
+  status request_status NOT NULL DEFAULT 'open',
+  location GEOGRAPHY(Point, 4326),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- ============================================================
--- 5. EMERGENCY ALERTS  (SOS broadcasts, realtime ticker source)
--- ============================================================
-create table if not exists emergency_alerts (
-  id uuid primary key default gen_random_uuid(),
-  request_id uuid references requests(id) on delete cascade,
-  triggered_by uuid references profiles(id),
-  radius_km numeric default 10,
-  created_at timestamptz default now()
+CREATE TABLE emergency_alerts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  request_id UUID NOT NULL REFERENCES requests(id) ON DELETE CASCADE,
+  triggered_by UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  radius_km NUMERIC NOT NULL DEFAULT 10,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- ============================================================
--- 6. TRIGGER — auto-create a profile row on signup
---    Reads the metadata passed in sb.auth.signUp({ options: { data: {...} } })
--- ============================================================
-create or replace function handle_new_user()
-returns trigger
-language plpgsql
-security definer set search_path = public
-as $$
-begin
-  insert into public.profiles (id, full_name, phone, blood_group, is_organ_donor, role)
-  values (
-    new.id,
-    new.raw_user_meta_data->>'full_name',
-    new.raw_user_meta_data->>'phone',
-    new.raw_user_meta_data->>'blood_group',
-    coalesce((new.raw_user_meta_data->>'is_organ_donor')::boolean, false),
-    coalesce(new.raw_user_meta_data->>'role', 'donor')
-  );
-  return new;
-end;
-$$;
+CREATE TABLE hospitals (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  address TEXT,
+  phone TEXT,
+  location GEOGRAPHY(Point, 4326) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute procedure handle_new_user();
+CREATE TABLE blood_banks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  address TEXT,
+  phone TEXT,
+  location GEOGRAPHY(Point, 4326) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 
--- ============================================================
--- 7. RPC — nearby_donors
---    Called as: sb.rpc('nearby_donors', { target_blood_group, lat, lng, radius_km })
---    SECURITY DEFINER so it can search across all profiles even though
---    profiles table itself stays locked down by RLS (see below).
--- ============================================================
-create or replace function nearby_donors(
-  target_blood_group text,
-  lat double precision,
-  lng double precision,
-  radius_km double precision
+CREATE INDEX profiles_location_idx ON profiles USING GIST (location);
+CREATE INDEX requests_location_idx ON requests USING GIST (location);
+CREATE INDEX hospitals_location_idx ON hospitals USING GIST (location);
+CREATE INDEX blood_banks_location_idx ON blood_banks USING GIST (location);
+CREATE INDEX requests_status_idx ON requests (status);
+CREATE INDEX profiles_blood_group_idx ON profiles (blood_group);
+CREATE INDEX profiles_is_doctor_idx ON profiles (is_doctor);
+
+CREATE OR REPLACE FUNCTION nearby_donors(
+  target_blood_group TEXT,
+  lat DOUBLE PRECISION,
+  lng DOUBLE PRECISION,
+  radius_km DOUBLE PRECISION
 )
-returns table (
-  id uuid,
-  full_name text,
-  blood_group text,
-  donor_lat double precision,
-  donor_lng double precision,
-  distance_km double precision
-)
-language sql
-security definer set search_path = public
-as $$
-  select
+RETURNS TABLE (
+  id UUID,
+  full_name TEXT,
+  blood_group TEXT,
+  phone TEXT,
+  donor_lat DOUBLE PRECISION,
+  donor_lng DOUBLE PRECISION,
+  distance_km DOUBLE PRECISION
+) AS $$
+  SELECT
     p.id,
     p.full_name,
     p.blood_group,
-    st_y(p.location::geometry) as donor_lat,
-    st_x(p.location::geometry) as donor_lng,
-    st_distance(p.location, st_setsrid(st_makepoint(lng, lat), 4326)::geography) / 1000.0 as distance_km
-  from profiles p
-  where p.role = 'donor'
-    and p.blood_group = target_blood_group
-    and p.availability_status = 'available'
-    and p.location is not null
-    and st_dwithin(p.location, st_setsrid(st_makepoint(lng, lat), 4326)::geography, radius_km * 1000)
-  order by distance_km asc
-  limit 50;
-$$;
+    p.phone,
+    ST_Y(p.location::geometry) AS donor_lat,
+    ST_X(p.location::geometry) AS donor_lng,
+    ST_Distance(p.location, ST_MakePoint(lng, lat)::geography) / 1000 AS distance_km
+  FROM profiles p
+  WHERE p.location IS NOT NULL
+    AND p.is_available = TRUE
+    AND (target_blood_group IS NULL OR p.blood_group = target_blood_group)
+    AND ST_DWithin(p.location, ST_MakePoint(lng, lat)::geography, radius_km * 1000)
+  ORDER BY distance_km ASC
+  LIMIT 100;
+$$ LANGUAGE sql STABLE;
 
--- ============================================================
--- 8. RPC — nearby_hospitals
---    Called as: sb.rpc('nearby_hospitals', { lat, lng, radius_km })
--- ============================================================
-create or replace function nearby_hospitals(
-  lat double precision,
-  lng double precision,
-  radius_km double precision
+CREATE OR REPLACE FUNCTION nearby_hospitals(
+  lat DOUBLE PRECISION,
+  lng DOUBLE PRECISION,
+  radius_km DOUBLE PRECISION
 )
-returns table (
-  id uuid,
-  name text,
-  category text,
-  hosp_lat double precision,
-  hosp_lng double precision,
-  distance_km double precision
-)
-language sql
-security definer set search_path = public
-as $$
-  select
+RETURNS TABLE (
+  id UUID,
+  name TEXT,
+  address TEXT,
+  phone TEXT,
+  hospital_lat DOUBLE PRECISION,
+  hospital_lng DOUBLE PRECISION,
+  distance_km DOUBLE PRECISION
+) AS $$
+  SELECT
     h.id,
     h.name,
-    h.category,
-    st_y(h.location::geometry) as hosp_lat,
-    st_x(h.location::geometry) as hosp_lng,
-    st_distance(h.location, st_setsrid(st_makepoint(lng, lat), 4326)::geography) / 1000.0 as distance_km
-  from hospitals h
-  where h.location is not null
-    and st_dwithin(h.location, st_setsrid(st_makepoint(lng, lat), 4326)::geography, radius_km * 1000)
-  order by distance_km asc
-  limit 50;
-$$;
+    h.address,
+    h.phone,
+    ST_Y(h.location::geometry) AS hospital_lat,
+    ST_X(h.location::geometry) AS hospital_lng,
+    ST_Distance(h.location, ST_MakePoint(lng, lat)::geography) / 1000 AS distance_km
+  FROM hospitals h
+  WHERE ST_DWithin(h.location, ST_MakePoint(lng, lat)::geography, radius_km * 1000)
+  ORDER BY distance_km ASC
+  LIMIT 100;
+$$ LANGUAGE sql STABLE;
 
--- ============================================================
--- 9. ROW LEVEL SECURITY
---    Search happens via the SECURITY DEFINER RPCs above, so direct
---    table access can stay tight without breaking donor search.
--- ============================================================
-alter table profiles enable row level security;
-alter table hospitals enable row level security;
-alter table donations enable row level security;
-alter table requests enable row level security;
-alter table emergency_alerts enable row level security;
+CREATE OR REPLACE FUNCTION nearby_blood_banks(
+  lat DOUBLE PRECISION,
+  lng DOUBLE PRECISION,
+  radius_km DOUBLE PRECISION
+)
+RETURNS TABLE (
+  id UUID,
+  name TEXT,
+  address TEXT,
+  phone TEXT,
+  bank_lat DOUBLE PRECISION,
+  bank_lng DOUBLE PRECISION,
+  distance_km DOUBLE PRECISION
+) AS $$
+  SELECT
+    b.id,
+    b.name,
+    b.address,
+    b.phone,
+    ST_Y(b.location::geometry) AS bank_lat,
+    ST_X(b.location::geometry) AS bank_lng,
+    ST_Distance(b.location, ST_MakePoint(lng, lat)::geography) / 1000 AS distance_km
+  FROM blood_banks b
+  WHERE ST_DWithin(b.location, ST_MakePoint(lng, lat)::geography, radius_km * 1000)
+  ORDER BY distance_km ASC
+  LIMIT 100;
+$$ LANGUAGE sql STABLE;
 
--- profiles: users can read/update only their own row
-create policy "profiles: read own" on profiles
-  for select using (auth.uid() = id);
-create policy "profiles: update own" on profiles
-  for update using (auth.uid() = id);
+CREATE OR REPLACE FUNCTION set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
--- hospitals: public read (used to render hospital list/map), no public write
-create policy "hospitals: public read" on hospitals
-  for select using (true);
-
--- donations: donor can read their own history
-create policy "donations: read own" on donations
-  for select using (auth.uid() = donor_id);
-
--- requests: any authenticated user can create their own request,
--- and the dashboard needs to read all requests + update status.
--- (Kept permissive for the hackathon demo — tighten to role='hospital' /
---  role='admin' on update once you have role-checking in place.)
-create policy "requests: insert own" on requests
-  for insert with check (auth.uid() = requester_id);
-create policy "requests: read all (authenticated)" on requests
-  for select using (auth.role() = 'authenticated');
-create policy "requests: update status (authenticated)" on requests
-  for update using (auth.role() = 'authenticated');
-
--- emergency_alerts: public read (powers the live SOS ticker, which runs
--- even before login), insert only by the person who triggered it.
-create policy "emergency_alerts: public read" on emergency_alerts
-  for select using (true);
-create policy "emergency_alerts: insert own" on emergency_alerts
-  for insert with check (auth.uid() = triggered_by);
-
--- ============================================================
--- 10. REALTIME — enable postgres_changes broadcasts for the SOS ticker
--- ============================================================
-alter publication supabase_realtime add table emergency_alerts;
-
--- ============================================================
--- Done. After running this:
--- 1. Supabase Dashboard → Authentication → Providers → Email:
---    turn OFF "Confirm email" for faster hackathon demo signups (optional)
--- 2. Insert 2-3 rows into `hospitals` manually so the map/search has data
--- 3. Test signup -> a matching row should appear in `profiles` automatically
--- ============================================================
+CREATE TRIGGER users_set_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+CREATE TRIGGER profiles_set_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+CREATE TRIGGER requests_set_updated_at BEFORE UPDATE ON requests FOR EACH ROW EXECUTE FUNCTION set_updated_at();
